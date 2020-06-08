@@ -16,7 +16,7 @@ rule clean:
                         mkdir results/{params.folder}
                 fi
                 cd results/{params.folder}
-                funannotate clean -i ../../{input.assembly} -o ../../{output} --minlen {params.minlen}  2> ../../{log}
+                funannotate clean -i ../../{input.assembly} -o ../../{output} --minlen {params.minlen}  &> ../../{log}
                 """
 
 rule sort:
@@ -24,12 +24,14 @@ rule sort:
                 assembly = rules.clean.output
         output:
                 "results/{sample}/{sample}_sorted.fas"
+	log:
+		"log/{sample}_sort.log"
         params:
                 folder = "{sample}",
                 contig_prefix = get_contig_prefix
         shell:
                 """
                 cd results/{params.folder}
-                funannotate sort -i ../../{input.assembly} -o ../../{output} -b {params.contig_prefix}
+                funannotate sort -i ../../{input.assembly} -o ../../{output} -b {params.contig_prefix} &> ../../{log}
                 """
 
