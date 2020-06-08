@@ -1,0 +1,43 @@
+__default__:
+   time: "72:00:00"
+   ntasks: 1
+   N: 1
+   J: default
+   ntasks-per-node: 1
+   hint: nomultithread
+   partition: mem_0096 
+   qos: mem_0096
+   output: $(pwd)/log/slurm-%j.out
+   error: $(pwd)/log/slurm-%j.err
+clean:
+   ntasks-per-node: 1
+   hint: nomultithread
+   J: clean 
+sort:
+   J: sort
+mask:
+   J: mask
+   hint: multithread
+   ntasks-per-node: 96 
+predict:
+   J: pred
+   hint: multithread
+   ntasks-per-node: 48
+iprscan:
+   J: ipr
+   hint: multithread
+   ntasks-per-node: 48
+remote:
+   J: rem
+eggnog:
+   J: egg
+   hint: multithread
+   ntasks-per-node: 48
+annotate:
+   J: anno
+   hint: multithread
+   ntasks-per-node: 48
+compare:
+   J: compare
+   hint: multithread
+   ntasks-per-node: 48

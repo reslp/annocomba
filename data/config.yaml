@@ -1,0 +1,28 @@
+samples: "data/data_test.csv"
+clean:
+        minlen: 5000
+mask:
+        method: "repeatmasker"
+        threads: 48
+predict:
+        organism: "fungus"
+        busco_seed_species: "anidulans"
+        ploidy: 1
+        busco_db: "dikarya"
+        threads: 48
+remote:
+        methods: "all"
+        email: "philipp.resl@uni-graz.at"
+eggnog:
+        threads: 48
+annotate:
+        threads: 48
+
+# in case yes is specified for phylogeny or histograms, it is important that no more than 60 species are analysed (histograms)
+# for phylogeny names have to be unique because they are truncated to 10 characters before raxml or iqtree is called
+compare:
+        threads: 48
+        phylogeny: "no"
+        histograms: "no"
+        ml_method: "raxml"
+        num_orthos: 10

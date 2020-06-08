@@ -1,0 +1,21 @@
+__default__:
+   time: 00:10:00
+   ntasks: 1
+   N: 1
+   J: sm_default
+   ntasks-per-node: 1
+   mem: 1500
+   hint: nomultithread
+   partition: mem_0128
+   qos: devel_0128
+   output: /home/lv71312/reslp/projects/monos_fun/log/slurm-%j.out
+   error: /home/lv71312/reslp/projects/monos_fun/log/slurm-%j.err
+clean:
+   time: 00:10:00
+   ntasks-per-node: 1
+   hint: nomultithread
+   mem: 200
+   J: sm_clean 
+sort:
+   time: 00:10:00
+   J: sm_sort

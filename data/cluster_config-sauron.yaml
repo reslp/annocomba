@@ -1,0 +1,40 @@
+__default__:
+   ntasks: 1
+   N: default
+   queue: mpi
+   mem: 96G
+   output: $(pwd)/log/sauron-%j.out
+   error: $(pwd)/log/sauron-%j.err
+clean:
+   hint: nomultithread
+   N: clean 
+sort:
+   N: sort
+mask:
+   N: mask
+   hint: multithread
+   ntasks: 16 
+predict:
+   N: pred
+   hint: multithread
+   ntasks: 16
+iprscan:
+   N: ipr
+   hint: multithread
+   ntasks: 16
+remote:
+   N: rem
+eggnog:
+   N: egg
+   hint: multithread
+   ntasks: 16
+annotate:
+   N: anno
+   hint: multithread
+   ntasks: 16
+compare:
+   N: compare
+   hint: multithread
+   ntasks: 16
+tarpredict:
+   N: tarpred
