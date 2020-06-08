@@ -20,18 +20,18 @@ rule clean:
                 """
 
 rule sort:
-        input:
-                assembly = rules.clean.output
-        output:
-                "results/{sample}/{sample}_sorted.fas"
+	input:
+		assembly = rules.clean.output
+	output:
+		"results/{sample}/{sample}_sorted.fas"
 	log:
 		"log/{sample}_sort.log"
-        params:
-                folder = "{sample}",
-                contig_prefix = get_contig_prefix
-        shell:
-                """
-                cd results/{params.folder}
-                funannotate sort -i ../../{input.assembly} -o ../../{output} -b {params.contig_prefix} &> ../../{log}
-                """
+	params:
+		folder = "{sample}",
+		contig_prefix = get_contig_prefix
+	shell:
+		"""
+		cd results/{params.folder}
+		funannotate sort -i ../../{input.assembly} -o ../../{output} -b {params.contig_prefix} &> ../../{log}
+		"""
 
