@@ -1,8 +1,10 @@
 .snakemake/
-data/external/*
+data/external/
 !data/external/.gitkeep
-data/database/*
+data/database/
 !data/database/.gitkeep
+data/assemblies/
+!data/assemblies/.gitkeep
 .DS_Store
 results/
 log/
