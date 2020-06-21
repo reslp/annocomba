@@ -4,7 +4,7 @@
 set -e
 
 usage() {
-        echo "Welcome to the pipeline submission script. A script helps to submit jobs to SLURM and SGE clusters with snakemake and singularity"
+        echo "Welcome to annocomba. This script helps to submit genome annotation jobs to SLURM and SGE clusters with snakemake and singularity"
         echo
         echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
         echo
@@ -14,6 +14,7 @@ usage() {
         echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
         echo "  -m <mode> Specify runmode, separated by comma. Options: all,maker,funannotate. Default: all"
+	echo "  --setup This flag wil setup all programs and settings for running the pipeline."
         1>&2; exit 1; }
 
 version() {
@@ -22,7 +23,7 @@ version() {
 }
 CLUSTER=""
 CLUSTER_CONFIg=""
-
+SETUP=""
 while getopts ":v:t:c:s:m:" option;
         do
                 case "${option}"
@@ -33,11 +34,24 @@ while getopts ":v:t:c:s:m:" option;
                         s) SM_ARGS=${OPTARG};;
                         i) SI_ARGS=${OPTARG};;
                         m) RUNMODE=${OPTARG};;
+			-) LONG_OPTARG="${OPTARG#*=}"
+				case $OPTARG in
+					setup) SETUP="TRUE" ;;
+					'' ) break ;;
+					*) echo "Illegal option --$OPTARG\n" >&2; usage; exit 2 ;;
+				esac ;;	
                         *) echo "Illegal option --$OPTARG\n" >&2; usage;;
                         ?) echo "Illegal option --$OPTARG\n" >&2 usage;;
                 esac
         done
 if [ $OPTIND -eq 1 ]; then usage; fi
+
+
+if [[ ! -f ".annocomba_setup.done" ]]; then
+	echo "Annocomba has not yet been configured properly."
+	echo "Please run: submit.sh --setup"
+	exit 1;
+fi
 
 # Testing warning
 echo "WARNING: The submission script is still in testing mode! Check the snakemake command inside before moving into production!"
