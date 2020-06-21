@@ -14,7 +14,9 @@ usage() {
         echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
         echo "  -m <mode> Specify runmode, separated by comma. Options: all,maker,funannotate. Default: all"
+	echo
 	echo "  --setup This flag wil setup all programs and settings for running the pipeline."
+	echo
         1>&2; exit 1; }
 
 version() {
@@ -24,7 +26,7 @@ version() {
 CLUSTER=""
 CLUSTER_CONFIg=""
 SETUP=""
-while getopts ":v:t:c:s:m:" option;
+while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
                 in
@@ -34,11 +36,11 @@ while getopts ":v:t:c:s:m:" option;
                         s) SM_ARGS=${OPTARG};;
                         i) SI_ARGS=${OPTARG};;
                         m) RUNMODE=${OPTARG};;
-			-) LONG_OPTARG="${OPTARG#*=}"
+			-) LONG_OPTARG="${OPTARG#*}"
 				case $OPTARG in
 					setup) SETUP="TRUE" ;;
 					'' ) break ;;
-					*) echo "Illegal option --$OPTARG\n" >&2; usage; exit 2 ;;
+					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
                         *) echo "Illegal option --$OPTARG\n" >&2; usage;;
                         ?) echo "Illegal option --$OPTARG\n" >&2 usage;;
@@ -46,6 +48,18 @@ while getopts ":v:t:c:s:m:" option;
         done
 if [ $OPTIND -eq 1 ]; then usage; fi
 
+if [[ $SETUP == "TRUE" ]]; then
+	echo "Will setup annocomba now:"
+	if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_maker --cores 1 ; then
+		echo "Annocomba setup finished"
+		touch .annocomba_setup.done
+		exit 0
+	else
+		echo "There was an error with annocomba --setup."
+		exit 1
+	fi
+	exit 0
+fi
 
 if [[ ! -f ".annocomba_setup.done" ]]; then
 	echo "Annocomba has not yet been configured properly."

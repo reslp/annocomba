@@ -13,4 +13,6 @@ rule all:
 		expand("results/{name}/{name}_cleaned.fas", name=sample_data.index.tolist()),
 		expand("results/{name}/{name}_sorted.fas", name=sample_data.index.tolist())
 
+include: "rules/setup_maker.smk"
 include: "rules/funannotate_sort_mask.smk"
+

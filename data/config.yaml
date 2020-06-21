@@ -1,3 +1,10 @@
+#General settings:
+
+split_batch_length: 3000000
+split_min_length: 1000
+maker_tarball: data/external/maker-2.31.10.tgz
+RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
+
 samples: "data/data_test.csv"
 clean:
         minlen: 5000

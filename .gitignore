@@ -21,3 +21,7 @@ excluded_species/
 report.html
 test.txt
 .gitignore.swp
+.annocomba_setup.done
+bin/maker
+bin/RepeatMasker
+data/config
