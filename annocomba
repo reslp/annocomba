@@ -49,16 +49,34 @@ while getopts ":v:t:c:s:m:-:" option;
 if [ $OPTIND -eq 1 ]; then usage; fi
 
 if [[ $SETUP == "TRUE" ]]; then
-	echo "Will setup annocomba now:"
-	if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_maker --cores 1 ; then
-		echo "Annocomba setup finished"
-		touch .annocomba_setup.done
+	if [[ -f ".annocomba_setup.done" ]]; then
+		echo "It appears that annocomba --setup has been run before. Nothing will be done."
 		exit 0
+	fi	
+
+	echo "Will setup funannotate for annocomba now:"
+	if [[ ! -d "data/funannotate_database/" ]]; then
+		mkdir data/funannotate_database
+	fi
+	FUN=""
+	if snakemake --use-singularity --singularity-args "-B $(pwd)/data/funannotate_database:/data/database" -r setup_funannotate --cores 1 ; then
+		echo "funannotate for annocomba setup complete."
+		FUN="done"
 	else
-		echo "There was an error with annocomba --setup."
+		echo "Error during funannotate setup."
 		exit 1
 	fi
-	exit 0
+	MAK=""
+	if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_maker --cores 1 ; then
+		echo "MAKER for annocomba setup complete."
+		MAK="done"
+	else
+		echo "Error during MAKER setup."
+		exit 1
+	fi
+	if [[ $FUN == "done" && $MAK == "done" ]]; then
+		touch .annocomba_setup.done
+	fi
 fi
 
 if [[ ! -f ".annocomba_setup.done" ]]; then
