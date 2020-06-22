@@ -26,6 +26,7 @@ version() {
 CLUSTER=""
 CLUSTER_CONFIg=""
 SETUP=""
+RUNMODE="all"
 while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
