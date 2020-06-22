@@ -1,23 +1,22 @@
-rule initiate:
-	input:
-		rules.setup_maker.output
-	params:
-		prefix = "{sample}"
-	output:
-		"results/{sample}/{sample}.ok"
-	shell:
+#rule initiate:
+#	input:
+#		rules.setup_maker.output
+#	params:
+#		prefix = "{sample}"
+#	output:
+#		"results/{sample}/{sample}.ok"
+#	shell:
+#		"""
+#		if [[ ! -d results/{params.prefix} ]]
+#		then
+#			mkdir results/{params.prefix}
+#		fi
+#		touch {output}
+#
 		"""
-		if [[ ! -d results/{params.prefix} ]]
-		then
-			mkdir results/{params.prefix}
-		fi
-		touch {output}
-		"""
-
 rule split:
 	input:
 		fasta = get_assembly_path,
-		ok = rules.initiate.output
 	params:
 		prefix = "{sample}",
 		len = n,
