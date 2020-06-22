@@ -76,6 +76,10 @@ if [[ $SETUP == "TRUE" ]]; then
 	fi
 	if [[ $FUN == "done" && $MAK == "done" ]]; then
 		touch .annocomba_setup.done
+		exit 0
+	else
+		echo "An error occured during setup."
+		exit 1
 	fi
 fi
 

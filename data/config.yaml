@@ -5,6 +5,7 @@ split_min_length: 1000
 maker_tarball: data/external/maker-2.31.10.tgz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
 funannotate_databases: all
+busco_set: "eukaryota"
 containers:
         funannotate_setup: docker://reslp/funannotate:git_clone
 
