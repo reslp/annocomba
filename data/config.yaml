@@ -6,9 +6,14 @@ maker_tarball: data/external/maker-2.31.10.tgz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
 funannotate_databases: all
 busco_set: "eukaryota"
+
+# This database can be huge: NOG contains approx 2mio files.
+eggnog_database: "NOG"
+
+# List of used containers:
 containers:
         funannotate_setup: docker://reslp/funannotate:git_clone
-
+        eggnog_mapper: docker://reslp/eggnog-mapper:1.0.3
 
 
 samples: "data/data_test.csv"

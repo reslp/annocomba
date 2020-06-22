@@ -15,5 +15,6 @@ rule all:
 
 include: "rules/setup_maker.smk"
 include: "rules/setup_funannotate.smk"
+include: "rules/setup_eggnog.smk"
 include: "rules/funannotate_sort_mask.smk"
 
