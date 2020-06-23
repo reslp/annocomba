@@ -59,7 +59,7 @@ rule split:
 	singularity:
 		config["containers"]["funannotate"]
 	params:
-		n_batches = 50,
+		n_batches = get_batch_number,
 		wd = os.getcwd()
 	shell:
 		"""

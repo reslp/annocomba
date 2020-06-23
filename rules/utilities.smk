@@ -18,3 +18,21 @@ def get_all_samples(wildcards):
         sam = [sample+"s" for sample in sam].join()
         return sam
 
+def get_batch_number(wildcards):
+	return sample_data.loc[wildcards.sample, ["batches"]].to_list()
+
+# code to calculate and prepare the number of batches so that snakemake knows how many jobs to spawn
+dic = {'sample': [], 'unit': []}
+unitdict = {}
+print("Counting batches per sample:")
+for sample in sample_data.index.values.tolist():
+	counter = sample_data.loc[sample, ["batches"]].to_list()
+	counter = int(counter.pop())
+	print("\t"+sample+" - n="+str(counter))
+	unitdict[sample] = []
+	for i in range(1,counter+1):
+		dic['sample'].append(sample)
+		dic['unit'].append(str(i).zfill(4))
+		unitdict[sample].append(str(i).zfill(4))
+	units = pd.DataFrame(dic).set_index(['sample','unit'], drop=False)
+

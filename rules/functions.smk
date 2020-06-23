@@ -86,7 +86,7 @@ for sample in samples.index.values.tolist():
     print("\t"+sample+" - n=", end='')
     #count = subprocess.run("bash ./bin/count_length.sh %s %i %i count" %(samples.fasta[sample], n, min), shell=True, stdout=subprocess.PIPE)
     #counter = int(count.stdout.decode('utf-8').split("\t")[-1])
-    counter = 50
+    counter = samples.loc[sample, ["batches"]].to_list()
 
 #    counter=partition_by_length(str(samples.fasta[sample]), max_length=n, min_length=min, pr=0) 
     print(counter)
