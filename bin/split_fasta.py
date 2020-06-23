@@ -5,10 +5,32 @@ usage: ./split_fasta.py test.fasta(.gz) 50
 """
 
 import sys
-import random
-import os.path
 
-counter = 0
+def check(args):
+    import os.path
+    if os.path.isfile(args[0]):
+        fasta = args[0]
+    else:
+        print __doc__
+	print "File not found\n"
+        sys.exit(1)
+
+    try:
+	n = int(args[1])
+    except:
+	print __doc__
+	print "Specify number of batches as integer\n"
+	sys.exit(2)
+    return fasta,n
+
+def open_fasta(f):
+    if f[-2:] == "gz":
+        import gzip
+	fh = gzip.open(f)
+    else:
+	fh = open(f)
+    return fh
+    
 def setup_dic(n):
     dic = {}
     for i in range(1,n+1):
@@ -56,28 +78,10 @@ def write(dic):
 
 
 if __name__ == '__main__':
-    if os.path.isfile(sys.argv[1]):
-        fasta = sys.argv[1]
-    else:
-        print __doc__
-	print "File not found\n"
-        sys.exit(1)
 
-    try:
-	n = int(sys.argv[2])
-    except:
-	print __doc__
-	print "Specify number of batches as integer\n"
-	sys.exit(2)
-
-    if fasta[-2:] == "gz":
-        import gzip
-	fh = gzip.open(fasta)
-    else:
-	fh = open(fasta)
-
+    fasta , n = check(sys.argv[1:])
     d = setup_dic(n)
-    distribute(fh, n, d)
+    distribute(open_fasta(fasta), n, d)
 #    print d.keys()
     cleanup(d)
 #    print d.keys()
