@@ -84,9 +84,9 @@ unitdict = {}
 print("Counting partitions (batchsize >= "+str(n)+"bp, minimum length = "+str(min)+"bp) ..")
 for sample in samples.index.values.tolist():
     print("\t"+sample+" - n=", end='')
-    count = subprocess.run("bash ./bin/count_length.sh %s %i %i count" %(samples.fasta[sample], n, min), shell=True, stdout=subprocess.PIPE)
-    counter = int(count.stdout.decode('utf-8').split("\t")[-1])
-
+    #count = subprocess.run("bash ./bin/count_length.sh %s %i %i count" %(samples.fasta[sample], n, min), shell=True, stdout=subprocess.PIPE)
+    #counter = int(count.stdout.decode('utf-8').split("\t")[-1])
+    counter = 50
 
 #    counter=partition_by_length(str(samples.fasta[sample]), max_length=n, min_length=min, pr=0) 
     print(counter)
@@ -107,6 +107,6 @@ units = pd.DataFrame(dic).set_index(['sample','unit'], drop=False)
 #for row in units.itertuples():
 #    print(row)
 
-units.index.names = ["sample_id", "unit_id"]
-units.index = units.index.set_levels(
-    [i.astype(str) for i in units.index.levels])  # enforce str in index
+#units.index.names = ["sample_id", "unit_id"]
+#units.index = units.index.set_levels(
+#    [i.astype(str) for i in units.index.levels])  # enforce str in index

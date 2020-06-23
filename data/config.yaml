@@ -1,5 +1,6 @@
 #General settings:
 
+samples: "data/data_test.csv"
 split_batch_length: 3000000
 split_min_length: 1000
 maker_tarball: data/external/maker-2.31.10.tgz
@@ -7,16 +8,25 @@ RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.ta
 funannotate_databases: all
 busco_set: "eukaryota"
 
+
 # This database can be huge: NOG contains approx 2mio files.
 eggnog_database: "NOG"
 
 # List of used containers:
 containers:
         funannotate_setup: docker://reslp/funannotate:git_clone
+        funannotate: docker://reslp/funannotate:1.7.4
         eggnog_mapper: docker://reslp/eggnog-mapper:1.0.3
+        premaker: docker://chrishah/premaker-plus:18
 
 
-samples: "data/data_test.csv"
+# MAKER specific setting
+genemark:
+   genemark_dir: data/external/gmes_linux_64
+   gmes_petap_params:
+
+
+# funannotate specific settings
 clean:
         minlen: 5000
 mask:
@@ -35,7 +45,6 @@ eggnog:
         threads: 48
 annotate:
         threads: 48
-
 # in case yes is specified for phylogeny or histograms, it is important that no more than 60 species are analysed (histograms)
 # for phylogeny names have to be unique because they are truncated to 10 characters before raxml or iqtree is called
 compare:
@@ -44,3 +53,15 @@ compare:
         histograms: "no"
         ml_method: "raxml"
         num_orthos: 10
+
+threads:
+        genemark: 8
+        busco: 8
+        cegma: 8
+        repeatmodeler: 8
+        repeatmasker: 8
+        prepare_protein_evidence: 8
+        run_MAKER_PASS1: 8
+        AUGUSTUS_PASS2: 10
+        run_MAKER_PASS2: 8
+
