@@ -9,6 +9,7 @@ rule clean:
         params:
                 folder = "{sample}",
                 minlen = config["clean"]["minlen"]
+	threads: 1
         shell:
                 """
                 if [[ ! -d results/{params.folder} ]]
@@ -29,6 +30,7 @@ rule sort:
 	params:
 		folder = "{sample}",
 		contig_prefix = get_contig_prefix
+	threads: 1
 	shell:
 		"""
 		cd results/{params.folder}

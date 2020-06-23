@@ -41,3 +41,17 @@ compare:
    J: compare
    hint: multithread
    ntasks-per-node: 48
+split:
+   J: split
+busco:
+   J: busco
+cegma:
+   J: cegma
+repeatmodeler:
+   J: repmod
+repeatmasker:
+   J: repmas
+genemark:
+   j: genemark
+
+

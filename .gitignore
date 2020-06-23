@@ -27,3 +27,4 @@ bin/RepeatMasker
 data/config
 data/funannotate_database/
 data/eggnog_database
+rulegraph

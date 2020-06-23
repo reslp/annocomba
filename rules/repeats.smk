@@ -1,17 +1,16 @@
 rule repeatmodeler:
 	input:
-		ok = rules.initiate.output,
-		fasta = rules.split.output.fasta
+		fasta = rules.sort.output 
 	params:
 		prefix = "{sample}",
 	threads: config["threads"]["repeatmodeler"]
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/REPEATMODELER.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/REPEATMODELER.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/REPEATMODELER/repeatmodeler.status.ok",
+		ok = "checkpoints/{sample}/repeatmodeler.status.ok",
 		fasta = "results/{sample}/REPEATMODELER/{sample}-families.fa"
 	shell:
 		"""
@@ -46,47 +45,47 @@ rule repeatmodeler:
 		fi
 		echo -e "\n$(date)\tFinished!\n"
 		"""
-
-rule cleanup_repeatmodeler:
-	input:
-		rules.repeatmodeler.output
-	params:
-		prefix = "{sample}"
-	log:
-		stdout = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stdout.txt",
-		stderr = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stderr.txt"
-	output:
-		ok = "results/{sample}/REPEATMODELER/repeatmodeler.cleanup.ok"
-	shell:
-		"""
-		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-		basedir=$(pwd)
-		
-		cd results/{params.prefix}/REPEATMODELER
-		for f in $(find ./ -type d -name "RM_*")
-		do
-			echo -e "\nCompressing $f\n"
-			tar cfz $f.tar.gz $f
-			
-			if [ $? -eq 0 ]
-			then
-        			rm -rf $f
-			else
-        			echo -e "Some problem with $f"
-			fi
-		done
-
-		cd $basedir
-		touch {output.ok}
-
-		echo -e "\n$(date)\tFinished!\n"
-
-		"""
-
-
+#
+#rule cleanup_repeatmodeler:
+#	input:
+#		rules.repeatmodeler.output
+#	params:
+#		prefix = "{sample}"
+#	log:
+#		stdout = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stdout.txt",
+#		stderr = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stderr.txt"
+#	output:
+#		ok = "results/{sample}/REPEATMODELER/repeatmodeler.cleanup.ok"
+#	shell:
+#		"""
+#		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+#		basedir=$(pwd)
+#		
+#		cd results/{params.prefix}/REPEATMODELER
+#		for f in $(find ./ -type d -name "RM_*")
+#		do
+#			echo -e "\nCompressing $f\n"
+#			tar cfz $f.tar.gz $f
+#			
+#			if [ $? -eq 0 ]
+#			then
+#        			rm -rf $f
+#			else
+#        			echo -e "Some problem with $f"
+#			fi
+#		done
+#
+#		cd $basedir
+#		touch {output.ok}
+#
+#		echo -e "\n$(date)\tFinished!\n"
+#
+#		"""
+#
+#
 rule repeatmasker:
 	input:
-		fasta = rules.split.output.fasta,
+		fasta = rules.sort.output,
 		repmod = rules.repeatmodeler.output.fasta
 	params:
 		prefix = "{sample}",
@@ -94,12 +93,12 @@ rule repeatmasker:
 		conversion_script = "bin/convert_repeatmasker_gff_to_MAKER_compatible_gff.sh"
 	threads: config["threads"]["repeatmasker"]
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/REPEATMASKER.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/REPEATMASKER.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/REPEATMASKER/repeatmasker.status.ok",
+		ok = "checkpoints/{sample}/repeatmasker.status.ok",
 		gff = "results/{sample}/REPEATMASKER/{sample}.masked.final.out.reformated.gff",
 		masked = "results/{sample}/REPEATMASKER/{sample}.masked.final.fasta"
 	shell:
