@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python
 
 """
 usage: ./split_fasta.py test.fasta(.gz) 50
@@ -19,7 +19,7 @@ def reset(n):
     import random
     l = []
     for i in range(1,n+1):
-	l.append(i)
+        l.append(i)
     random.shuffle(l)
     return l
 
@@ -27,13 +27,13 @@ def distribute(fh, n, dic):
     from Bio import SeqIO
     counter = 0
     for r in SeqIO.parse(fh, "fasta"):
-	if counter%n == 0:
-		l = reset(n)
+        if counter%n == 0:
+                l = reset(n)
 #		print l
-	target = l.pop()
+        target = l.pop()
 #	print r.id,target
-	dic[target] += ">%s\n%s\n" %(r.id, str(r.seq))
-	counter+=1
+        dic[target] += ">%s\n%s\n" %(r.id, str(r.seq))
+        counter+=1
 
 def write(dic):
     for b in dic.keys():
@@ -44,7 +44,7 @@ def write(dic):
 
 if __name__ == '__main__':
     if os.path.isfile(sys.argv[1]):
-	fasta = sys.argv[1]
+        fasta = sys.argv[1]
     else:
         print __doc__
 	print "File not found\n"
