@@ -88,6 +88,10 @@ if [[ $SETUP == "TRUE" ]]; then
 		exit 1
 	fi
 
+	if [[ -d data/external/gmes_linux_64/ ]]; then
+		echo "Warning: Genemark not found"
+	fi
+
 	if [[ $FUN == "done" && $MAK == "done" && $EGG == "done" ]]; then
 		touch .annocomba_setup.done
 		exit 0
