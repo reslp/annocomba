@@ -10,7 +10,9 @@ rule clean:
                 folder = "{sample}",
                 minlen = config["clean"]["minlen"]
 	threads: 1
-        shell:
+        singularity:
+		config["containers"]["funannotate"]
+	shell:
                 """
                 if [[ ! -d results/{params.folder} ]]
                 then
@@ -31,6 +33,8 @@ rule sort:
 		folder = "{sample}",
 		contig_prefix = get_contig_prefix
 	threads: 1
+	singularity:
+		config["containers"]["funannotate"]
 	shell:
 		"""
 		cd results/{params.folder}
