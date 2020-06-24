@@ -123,13 +123,13 @@ rule repeatmasker:
 
 		#Do RepeatMasking with denovo library
 		mkdir denovo
-		./RepeatMasker/RepeatMasker -engine ncbi -s -pa {threads} -lib $basedir/{input.repmod} -noisy -dir denovo -gff $basedir/{input.fasta} 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		./RepeatMasker/RepeatMasker -engine ncbi -s -pa {threads} -lib $basedir/{input.repmod} -noisy -dir denovo -gff $basedir/{input.fasta} -xsmall 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 		retVal=$?
 
 		#run REPEATMASKER against full repeat library, but use only the assembly that is already masked based on the denovo library
 		mkdir full
 		ln -s $(find ./denovo -name '*fasta.masked') {params.prefix}.masked.denovo.fasta
-		./RepeatMasker/RepeatMasker -engine ncbi -s -pa {threads} -species {params.repeat_taxon} -noisy -dir full -gff {params.prefix}.masked.denovo.fasta 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
+		./RepeatMasker/RepeatMasker -engine ncbi -s -pa {threads} -species {params.repeat_taxon} -noisy -dir full -gff {params.prefix}.masked.denovo.fasta -xsmall 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
 		retVal=$(( retVal + $? ))
 
 		#cleanup - remove the RepeatMasker directory
