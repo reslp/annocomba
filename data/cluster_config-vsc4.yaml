@@ -1,20 +1,20 @@
 __default__:
    time: "72:00:00"
+   n: 1
    ntasks: 1
-   N: 1
    J: default
-   ntasks-per-node: 1
    hint: nomultithread
+   mem: 4G
    partition: mem_0096 
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
 clean:
-   ntasks-per-node: 1
-   hint: nomultithread
    J: clean 
+   ntasks-per-node: 8
 sort:
    J: sort
+   ntasks-per-node: 8
 mask:
    J: mask
    hint: multithread
@@ -45,13 +45,17 @@ split:
    J: split
 busco:
    J: busco
+   mem: 20G
 cegma:
    J: cegma
+   mem: 20G
 repeatmodeler:
    J: repmod
+   mem: 20G
 repeatmasker:
    J: repmas
+   mem: 20G
 genemark:
-   j: genemark
-
+   J: genemark
+   mem: 20G
 
