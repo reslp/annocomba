@@ -139,7 +139,7 @@ if [[ $RUNMODE == *"all"* ]]; then
           snakemake --use-singularity --singularity-args "-B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database -B $(pwd)/data/external:/data/external $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS
   	unset CONDA_PKGS_DIRS
   elif [[ $CLUSTER == "sge" ]]; then
-  	snakemake --use-singularity --singularity-args "-B $(pwd)/data/eggnogdb_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database -B $(pwd)/data/external:/data/external $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} sge' --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS
+  	snakemake --use-singularity --singularity-args "-B $(pwd)/data/eggnogdb_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database -B $(pwd)/data/external:/data/external $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS
   elif [[ $CLUSTER == "serial" ]]; then
     snakemake --use-singularity --singularity-args "-B $(pwd)/data/eggnogdb_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database -B $(pwd)/data/external:/data/external $SI_ARGS" -pr --notemp $SM_ARGS
   else
