@@ -28,3 +28,4 @@ data/config
 data/funannotate_database/
 data/eggnogdb_database
 rulegraph
+checkpoints/

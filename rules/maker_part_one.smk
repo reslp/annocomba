@@ -52,7 +52,7 @@
 
 rule split:
 	input:
-		assembly = rules.sort.output
+		assembly = rules.sort.output.assembly
 	output:
 		checkpoint = "checkpoints/{sample}/split.ok",
 		fastas = directory("results/{sample}/GENOME_PARTITIONS/")
@@ -71,7 +71,7 @@ rule split:
 
 rule genemark:
 	input:
-		fasta = rules.sort.output
+		fasta = rules.sort.output.assembly
 	params:
 		prefix = "{sample}",
 		genemark_dir = config["genemark"]["genemark_dir"],
@@ -127,7 +127,7 @@ rule genemark:
 		
 rule busco:
 	input:
-		fasta = rules.sort.output
+		fasta = rules.sort.output.assembly
 	params:
 		prefix = "{sample}",
 		busco_path = "data/funannotate_database",
@@ -175,7 +175,7 @@ rule busco:
 
 rule cegma:
 	input:
-		fasta = rules.sort.output
+		fasta = rules.sort.output.assembly
 	params:
 		prefix = "{sample}"
 	threads: config["threads"]["cegma"]

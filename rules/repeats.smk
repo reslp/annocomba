@@ -1,6 +1,6 @@
 rule repeatmodeler:
 	input:
-		fasta = rules.sort.output 
+		fasta = rules.sort.output.assembly
 	params:
 		prefix = "{sample}",
 	threads: config["threads"]["repeatmodeler"]
@@ -85,7 +85,7 @@ rule repeatmodeler:
 #
 rule repeatmasker:
 	input:
-		fasta = rules.sort.output,
+		fasta = rules.sort.output.assembly,
 		repmod = rules.repeatmodeler.output.fasta
 	params:
 		prefix = "{sample}",
