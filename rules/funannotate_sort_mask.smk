@@ -3,7 +3,7 @@ rule clean:
                 assembly = get_assembly_path
 
         output:
-                asseembly ="results/{sample}/{sample}_cleaned.fas",
+                assembly ="results/{sample}/{sample}_cleaned.fas",
 		ok = "checkpoints/{sample}/clean.ok"
         log:
                 "log/{sample}_clean.log"

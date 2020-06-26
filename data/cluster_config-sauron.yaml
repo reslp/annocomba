@@ -39,24 +39,24 @@ compare:
 tarpredict:
    N: tarpred
 split:
-   J: split
+   N: split
 busco:
-   J: busco
+   N: busco
    mem: 20G
    ntasks: 16
 cegma:
-   J: cegma
+   N: cegma
    mem: 20G
    ntasks: 16
 repeatmodeler:
-   J: repmod
+   N: repmod
    mem: 20G
    ntasks: 16
 repeatmasker:
-   J: repmas
+   N: repmas
    mem: 20G
    ntasks: 16
 genemark:
-   J: genemark
+   N: genemark
    mem: 20G
    ntasks: 16
