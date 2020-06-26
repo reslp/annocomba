@@ -75,7 +75,8 @@ rule genemark:
 	params:
 		prefix = "{sample}",
 		genemark_dir = config["genemark"]["genemark_dir"],
-		gmes_petap_params = config["genemark"]["gmes_petap_params"]
+		gmes_petap_params = config["genemark"]["gmes_petap_params"],
+		wd = os.getcwd()
 	threads: config["threads"]["genemark"]
 	singularity:
 		config["containers"]["premaker"]
@@ -89,8 +90,9 @@ rule genemark:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 		basedir=$(pwd)
-
-                if [[ ! -d results/{params.prefix}/GENEMARK ]]
+		export PATH="{params.wd}/{params.genemark_dir}:$PATH"
+                
+		if [[ ! -d results/{params.prefix}/GENEMARK ]]
                 then
                         mkdir results/{params.prefix}/GENEMARK
 		else
@@ -102,8 +104,9 @@ rule genemark:
 			fi
                 fi
                 cd results/{params.prefix}/GENEMARK
-
-		ln -sf $basedir/{params.genemark_dir}/gm_key .gm_key
+		
+		# this could go to --setup
+		#ln -sf $basedir/{params.genemark_dir}/gm_key .gm_key
 
 		if [ "{params.gmes_petap_params}" == "None" ]
 		then
