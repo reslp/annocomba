@@ -23,7 +23,7 @@ containers:
 
 # MAKER specific setting
 genemark:
-   genemark_dir: data/external/gm_et_linux_64
+   genemark_dir: data/external/gmes_linux_64
    gmes_petap_params:
 
 
