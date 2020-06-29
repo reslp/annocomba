@@ -106,10 +106,11 @@ rule repeatmasker:
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 		basedir=$(pwd)
 
-		if [[ ! -d results/{params.prefix}/REPEATMASKER ]]
+		if [[ -d results/{params.prefix}/REPEATMASKER ]]
 		then
-			mkdir results/{params.prefix}/REPEATMASKER
+			rm -r results/{params.prefix}/REPEATMASKER
 		fi
+		mkdir results/{params.prefix}/REPEATMASKER
 		cd results/{params.prefix}/REPEATMASKER
 
 		#this is a bit of a hack, but since singularity does not allow to directly write to images ('no space left') and RepeatMasker in the
