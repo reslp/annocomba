@@ -128,7 +128,7 @@ rule repeatmasker:
 
 		#run REPEATMASKER against full repeat library, but use only the assembly that is already masked based on the denovo library
 		mkdir full
-		ln -s $(find ./denovo -name '*fasta.masked') {params.prefix}.masked.denovo.fasta
+		ln -s $(find ./denovo -name '*fas.masked') {params.prefix}.masked.denovo.fasta
 		./RepeatMasker/RepeatMasker -engine ncbi -s -pa {threads} -species {params.repeat_taxon} -noisy -dir full -gff {params.prefix}.masked.denovo.fasta -xsmall 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
 		retVal=$(( retVal + $? ))
 
