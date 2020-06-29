@@ -23,7 +23,7 @@ rule repeatmodeler:
 			if [ "$(ls -1 results/{params.prefix}/REPEATMODELER/ | wc -l)" -gt 0 ]
 			then
 				echo -e "Cleaning up remnants of previous run first"
-				rm results/{params.prefix}/REPEATMODELER
+				rm -r results/{params.prefix}/REPEATMODELER
 				mkdir results/{params.prefix}/REPEATMODELER
 			fi
 		fi
