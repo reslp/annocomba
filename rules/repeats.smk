@@ -100,7 +100,7 @@ rule repeatmasker:
 	output:
 		ok = "checkpoints/{sample}/repeatmasker.status.ok",
 		gff = "results/{sample}/REPEATMASKER/{sample}.masked.final.out.reformated.gff",
-		masked = "results/{sample}/REPEATMASKER/{sample}.masked.final.fasta"
+		masked = "results/{sample}/{sample}_masked.fas"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -151,8 +151,9 @@ rule repeatmasker:
 		#modify gff3 file so MAKER accepts it down the line
 		$basedir/{params.conversion_script} {params.prefix}.masked.final.out.gff3 > $basedir/{output.gff}
 
+		# copy masked assembly to base output dir
 		cd ..
-		ln -s final/{params.prefix}.masked.final.fasta $basedir/{output.masked}
+		cp final/{params.prefix}.masked.final.fasta $basedir/{output.masked}
 
 		if [ ! $retVal -eq 0 ]
 		then
