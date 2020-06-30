@@ -5,8 +5,8 @@ data/database/
 !data/database/.gitkeep
 data/assemblies/
 !data/assemblies/.gitkeep
-#data/protein_evidence/
-#!data/protein_evidence/.gitkeep
+data/protein_evidence/
+!data/protein_evidence/.gitkeep
 .DS_Store
 results/
 log/
