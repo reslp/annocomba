@@ -25,6 +25,13 @@ containers:
 genemark:
    genemark_dir: data/external/gmes_linux_64
    gmes_petap_params:
+aed:
+   snap_pass2: "0.2"
+   AUGUSTUS_PASS2: ["0.0", "0.1", "0.2"]
+
+cdhit:
+   similarity: "0.98"
+
 
 
 # funannotate specific settings

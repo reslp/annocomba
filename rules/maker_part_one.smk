@@ -230,7 +230,7 @@ rule snap_pass1:
 		stdout = "results/{sample}/logs/SNAP.PASS1.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/SNAP.PASS1.{sample}.stderr.txt"
 	output:
-		ok = "checkpoints/{sample}snap_pass1.status.ok",
+		ok = "checkpoints/{sample}/snap_pass1.status.ok",
 		hmm = "results/{sample}/SNAP.PASS1/{sample}.cegma.snap.hmm"
 	shell:
 		"""

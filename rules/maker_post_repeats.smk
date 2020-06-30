@@ -1,7 +1,7 @@
 rule prepare_protein_evidence:
 	input:
 		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz")),
-		ok = rules.initiate.output
+		ok = rules.split.output.checkpoint
 	params:
 		prefix = "{sample}",
 		mem = "8000",
@@ -13,7 +13,7 @@ rule prepare_protein_evidence:
 		stdout = "results/{sample}/logs/CDHIT.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/CDHIT.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/NR_PROTEIN_EVIDENCE/nr.status.ok",
+		ok = "checkpoints/{sample}/nr_protein_evidence.status.ok",
 		nr_proteins = "results/{sample}/NR_PROTEIN_EVIDENCE/nr_external_proteins.cd-hit.fasta"
 	shell:
 		"""
@@ -52,7 +52,7 @@ rule prepare_protein_evidence:
 
 rule initiate_MAKER_PASS1:
 	input:
-		ok = rules.initiate.output,
+		ok = rules.split.output.checkpoint,
 		snap = rules.snap_pass1.output.hmm,
 		nr_evidence = rules.prepare_protein_evidence.output.nr_proteins,
 		busco_proteins = rules.busco.output,
@@ -68,7 +68,7 @@ rule initiate_MAKER_PASS1:
 		stdout = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/MAKER.PASS1/init.ok"
+		ok = "checkpoints/{sample}/MAKER_PASS1_init.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -112,7 +112,7 @@ rule initiate_MAKER_PASS1:
 rule run_MAKER_PASS1:
 	input:
 		init_ok = rules.initiate_MAKER_PASS1.output.ok,
-		split_ok = rules.split.output.ok
+		split_ok = rules.split.output.checkpoint
 	params:
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		dir = "{unit}",
@@ -126,7 +126,8 @@ rule run_MAKER_PASS1:
 	output:
 		sub_fasta = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.fasta",
 		gff = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.all.maker.gff",
-		noseq_gff = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.noseq.maker.gff"
+		noseq_gff = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.noseq.maker.gff",
+		ok = "checkpoints/{sample}/MAKER.PASS1.{unit}.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -149,7 +150,8 @@ rule run_MAKER_PASS1:
 
 		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* .
 		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* .
-		
+	
+		touch $basedir/{output.ok}	
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
@@ -161,7 +163,8 @@ rule cleanup_MAKER_PASS1:
 		prefix = "{sample}",
 		script = "bin/cleanup.sh"
 	output:
-		"results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz"
+		gzipped_results = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz",
+		ok = "checkpoints/{sample}/cleanup_MAKER_PASS1.{unit}.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -169,6 +172,7 @@ rule cleanup_MAKER_PASS1:
 		
 		cd results/{params.prefix}/MAKER.PASS1/{params.dir}/
 		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
+		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 
 		"""	
@@ -185,7 +189,8 @@ rule merge_MAKER_PASS1:
 	output:
 		all_gff = "results/{sample}/MAKER.PASS1/{sample}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.gff",
-		proteins = "results/{sample}/MAKER.PASS1/{sample}.all.maker.proteins.fasta"
+		proteins = "results/{sample}/MAKER.PASS1/{sample}.all.maker.proteins.fasta",
+		ok = "checkpoints/{sample}/merge_MAKER_PASS1.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -194,6 +199,8 @@ rule merge_MAKER_PASS1:
 		cd results/{params.prefix}/MAKER.PASS1/
 
 		bash $basedir/{params.script} {params.prefix}
+		
+		touch $basedir/{output.ok}	
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
@@ -328,7 +335,8 @@ rule snap_pass2:
 		stdout = "results/{sample}/logs/SNAP.PASS2.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/SNAP.PASS2.{sample}.stderr.txt"
 	output:
-		snap_hmm = "results/{sample}/SNAP.PASS2/{sample}.MAKER_PASS1.snap.hmm"
+		snap_hmm = "results/{sample}/SNAP.PASS2/{sample}.MAKER_PASS1.snap.hmm",
+		ok = "checkpoints/{sample}/snap_pass2.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -350,7 +358,7 @@ rule snap_pass2:
 		$basedir/{input[0]} \
 		$aed \
 		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
-
+		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
@@ -375,7 +383,7 @@ rule initiate_MAKER_PASS2:
 		stdout = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/MAKER.PASS2/init.ok"
+		ok = "checkpoints/{sample}/MAKER.PASS2.init.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -429,7 +437,7 @@ rule initiate_MAKER_PASS2:
 
 rule run_MAKER_PASS2:
 	input:
-		split_ok = rules.split.output.ok,
+		split_ok = rules.split.output.checkpoint,
 		init_ok = rules.initiate_MAKER_PASS2.output.ok
 	params:
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
@@ -482,7 +490,8 @@ rule cleanup_MAKER_PASS2:
 		prefix = "{sample}",
 		script = "bin/cleanup.sh"
 	output:
-		"results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz"
+		gzipped_results = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz",
+		ok = "checkpoints/{sample}/cleanup_MAKER_PASS2.{unit}.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -492,6 +501,7 @@ rule cleanup_MAKER_PASS2:
 
 		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
 
+		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 		"""	
 
@@ -507,7 +517,8 @@ rule merge_MAKER_PASS2:
 	output:
 		all_gff = "results/{sample}/MAKER.PASS2/{sample}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS2/{sample}.noseq.maker.gff",
-		proteins = "results/{sample}/MAKER.PASS2/{sample}.all.maker.proteins.fasta"
+		proteins = "results/{sample}/MAKER.PASS2/{sample}.all.maker.proteins.fasta",
+		ok = "checkpoints/{sample}/merge_MAKER_PASS2.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -517,5 +528,6 @@ rule merge_MAKER_PASS2:
 
 		bash $basedir/{params.script} {params.prefix}
 
+		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 		"""

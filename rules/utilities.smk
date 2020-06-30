@@ -1,3 +1,10 @@
+import pandas as pd
+import os
+import glob
+from math import ceil
+from pathlib import Path
+from subprocess import call
+
 # useful variable definition:
 WD=os.getcwd()
 email="philipp.resl@uni-graz.at"
@@ -21,6 +28,17 @@ def get_all_samples(wildcards):
 def get_batch_number(wildcards):
 	return sample_data.loc[wildcards.sample, ["batches"]].to_list()
 
+def get_transcripts_path(wildcards, p="data/transcripts/*"):
+        #get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
+        dic = {'alt_ests': [], 'ests': []}
+        for f in glob.glob(p):
+                if f.split("/")[-1].startswith(wildcards.sample):
+                        dic['ests'].append(os.path.abspath(f))
+                else:
+                        dic['alt_ests'].append(os.path.abspath(f))
+        return dic
+
+
 # code to calculate and prepare the number of batches so that snakemake knows how many jobs to spawn
 dic = {'sample': [], 'unit': []}
 unitdict = {}
@@ -35,4 +53,5 @@ for sample in sample_data.index.values.tolist():
 		dic['unit'].append(str(i).zfill(4))
 		unitdict[sample].append(str(i).zfill(4))
 	units = pd.DataFrame(dic).set_index(['sample','unit'], drop=False)
+
 
