@@ -18,7 +18,7 @@ rule all:
 		expand("checkpoints/{name}/cegma.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist()),
-		expand("checkpoints/{name}/MAKER.PASS1.init.ok", name=sample_data.index.tolist()),	
+		expand("checkpoints/{name}/MAKER_PASS1_init.ok", name=sample_data.index.tolist()),	
 		#expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist())
 	
 
