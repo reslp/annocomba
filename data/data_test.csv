@@ -1,4 +1,4 @@
 sample  assembly_path   gene_prefix     contig_prefix   premasked	batches
 Acarospora_spec data/assemblies/Acarospora_spec_metagenomeV1_blobtools_Ascomycota.fa    aca_spe_pred    aca_spe no	50
 Agyrium_rufum    data/assemblies/Agy_ruf_genomeV2_blobtools_Ascomycota.fa        agy_ruf_pred    agy_ruf no	50
-Arthonia_radiata        data/assemblies/Arthonia_radiata_genomic_genbank.fna    art_rad_pred    art_rad no	17
+Arthonia_radiata        data/assemblies/Arthonia_radiata_genomic_genbank.fna    art_rad_pred    art_rad no	16
