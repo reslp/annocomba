@@ -19,7 +19,7 @@ rule all:
 		expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/MAKER_PASS1_init.ok", name=sample_data.index.tolist()),	
-		expand("results/{unit.sample}/MAKER.PASS1/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
+		#expand("results/{unit.sample}/MAKER.PASS1/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
 		expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist())
 
 include: "rules/setup_maker.smk"

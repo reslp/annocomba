@@ -45,8 +45,8 @@ fi
 if [ ! -z "$est" ]
 then
 	echo -e "Transcriptome evidence (est) provided: $est"
-	sed -i "s?^est= ?est=$(echo $est | sed 's/est=//' | sed 's/ /,/g') ?" maker_opts.ctl
-fi
+	sed -i "s?^est= ?est=$(echo $est | sed 's/est=//' | sed 's/ /,/g') ?" maker_opts.ctl	
 
-sed -i 's/est2genome=0/est2genome=1/' maker_opts.ctl
+	sed -i 's/est2genome=0/est2genome=1/' maker_opts.ctl
+fi
 sed -i 's/protein2genome=0/protein2genome=1/' maker_opts.ctl

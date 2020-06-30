@@ -84,16 +84,23 @@ rule initiate_MAKER_PASS1:
 
 		maker -CTL 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 		retVal=$?
+		
+		#quick check to see if NR protein evidence file is empty
+		if [[ -s $basedir/{input.nr_evidence} ]]; then
+			nr_evi=$basedir/{input.nr_evidence}
+		else
+			nr_evi=""
+		fi
 
 		##### Modify maker_opts.ctl file
 		bash $basedir/{params.script} \
 		$basedir/{input.snap} \
-		$basedir/{input.nr_evidence} \
+		$nr_evi \
 		$basedir/{input.busco_proteins} \
 		$basedir/{input.repmod_lib} \
 		$basedir/{input.repmas_gff} \
-		altest="{params.transcripts[alt_ests]}" \
-		est="{params.transcripts[ests]}" \
+		"{params.transcripts[alt_ests]}" \
+		"{params.transcripts[ests]}" \
 		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 		
 		retVal=$(( retVal + $? ))
