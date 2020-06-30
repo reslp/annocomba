@@ -17,7 +17,8 @@ rule all:
 		expand("checkpoints/{name}/busco.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/cegma.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),
-		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist())
+		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist()),
+		expand("checkpoints/{name}snap_pass1.status.ok", name=sample_data.index.tolist())
 
 include: "rules/setup_maker.smk"
 include: "rules/setup_funannotate.smk"
@@ -25,3 +26,4 @@ include: "rules/setup_eggnog.smk"
 include: "rules/funannotate_sort_mask.smk"
 include: "rules/maker_part_one.smk"
 include: "rules/repeats.smk"
+#include: "rules/maker_post/repeats.smk"

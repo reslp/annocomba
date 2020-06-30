@@ -216,50 +216,50 @@ rule cegma:
 
 		"""
 
-#rule snap_pass1:
-#	input:
-#		ok = rules.cegma.output.ok,
-#		cegma_gff = rules.cegma.output.cegma_gff,
-#		fasta = rules.split.output.fasta
-#	params:
-#		prefix = "{sample}",
-#		script = "bin/snap.p1.sh"
-#	singularity:
-#		"docker://chrishah/premaker-plus:18"
-#	log:
-#		stdout = "results/{sample}/logs/SNAP.PASS1.{sample}.stdout.txt",
-#		stderr = "results/{sample}/logs/SNAP.PASS1.{sample}.stderr.txt"
-#	output:
-#		ok = "results/{sample}/SNAP.PASS1/snap.status.ok",
-#		hmm = "results/{sample}/SNAP.PASS1/{sample}.cegma.snap.hmm"
-#	shell:
-#		"""
-#		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-#		basedir=$(pwd)
-#		
-#		export PATH="$(pwd)/bin/maker/bin:$PATH"
-#
-#		if [[ ! -d results/{params.prefix}/SNAP.PASS1 ]]
-#		then
-#			mkdir results/{params.prefix}/SNAP.PASS1
-#		fi
-#		cd results/{params.prefix}/SNAP.PASS1
-#
-#		bash $basedir/{params.script} \
-#		{params.prefix} \
-#		$basedir/{input.cegma_gff} \
-#		$basedir/{input.fasta} \
-#		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
-#
-#		retVal=$?
-#
-#		if [ ! $retVal -eq 0 ]
-#		then
-#			echo "SNAP ended in an error"
-#			exit $retVal
-#		else
-#			touch $basedir/{output.ok}
-#		fi
-#		echo -e "\n$(date)\tFinished!\n"
-#		"""
-#
+rule snap_pass1:
+	input:
+		ok = rules.cegma.output.ok,
+		cegma_gff = rules.cegma.output.cegma_gff,
+		fasta = rules.sort.output.assembly
+	params:
+		prefix = "{sample}",
+		script = "bin/snap.p1.sh"
+	singularity:
+		"docker://chrishah/premaker-plus:18"
+	log:
+		stdout = "results/{sample}/logs/SNAP.PASS1.{sample}.stdout.txt",
+		stderr = "results/{sample}/logs/SNAP.PASS1.{sample}.stderr.txt"
+	output:
+		ok = "checkpoints/{sample}snap_pass1.status.ok",
+		hmm = "results/{sample}/SNAP.PASS1/{sample}.cegma.snap.hmm"
+	shell:
+		"""
+		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+		basedir=$(pwd)
+		
+		export PATH="$(pwd)/bin/maker/bin:$PATH"
+
+		if [[ ! -d results/{params.prefix}/SNAP.PASS1 ]]
+		then
+			mkdir results/{params.prefix}/SNAP.PASS1
+		fi
+		cd results/{params.prefix}/SNAP.PASS1
+
+		bash $basedir/{params.script} \
+		{params.prefix} \
+		$basedir/{input.cegma_gff} \
+		$basedir/{input.fasta} \
+		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+
+		retVal=$?
+
+		if [ ! $retVal -eq 0 ]
+		then
+			echo "SNAP ended in an error"
+			exit $retVal
+		else
+			touch $basedir/{output.ok}
+		fi
+		echo -e "\n$(date)\tFinished!\n"
+		"""
+

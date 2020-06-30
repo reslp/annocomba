@@ -58,4 +58,6 @@ repeatmasker:
 genemark:
    J: genemark
    mem: 20G
-
+snap_pass1:
+   J: snap1
+   mem: 4G

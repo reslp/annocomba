@@ -60,3 +60,6 @@ genemark:
    N: genemark
    mem: 20G
    ntasks: 16
+snap_pass1:
+   N: snap1
+   mem: 4G
