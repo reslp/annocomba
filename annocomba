@@ -16,6 +16,7 @@ usage() {
         echo "  -m <mode> Specify runmode, separated by comma. Options: all,maker,funannotate. Default: all"
 	echo
 	echo "  --setup This flag wil setup all programs and settings for running the pipeline."
+	echo "  --remove Resets the pipeline. Will delete all results, logs and checkpoints."
 	echo
         1>&2; exit 1; }
 
@@ -27,6 +28,7 @@ CLUSTER=""
 CLUSTER_CONFIg=""
 SETUP=""
 RUNMODE="all"
+REMOVE="FALSE"
 while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
@@ -40,6 +42,7 @@ while getopts ":v:t:c:s:m:-:" option;
 			-) LONG_OPTARG="${OPTARG#*}"
 				case $OPTARG in
 					setup) SETUP="TRUE" ;;
+					remove) REMOVE="TRUE" ;;
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
@@ -48,6 +51,23 @@ while getopts ":v:t:c:s:m:-:" option;
                 esac
         done
 if [ $OPTIND -eq 1 ]; then usage; fi
+
+if [[ $REMOVE == "TRUE" ]]; then
+	echo "WARNING: This command will delete all previously generated results."
+	read -r -p "Are you sure [y/n]? " yn
+	if [[ $yn == "y" ]]; then
+		echo "Deleting all results, logs and checkpoints..."
+		rm -r results/*
+		rm -r log/*
+		rm -r checkpoints/*
+		echo "...done"
+		exit 0
+	else
+		echo "Not deleting anything"
+		exit 0
+	fi
+fi
+
 
 if [[ $SETUP == "TRUE" ]]; then
 	if [[ -f ".annocomba_setup.done" ]]; then
