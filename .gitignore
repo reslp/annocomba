@@ -28,6 +28,6 @@ bin/maker
 bin/RepeatMasker
 data/config
 data/funannotate_database/
-data/eggnogdb_database
+data/eggnog_database
 rulegraph
 checkpoints/

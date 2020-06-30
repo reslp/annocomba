@@ -6,6 +6,7 @@ __default__:
    hint: nomultithread
    mem: 4G
    partition: mem_0096 
+   reservation: p71312_11
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
