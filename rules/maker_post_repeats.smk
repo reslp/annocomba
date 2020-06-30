@@ -1,7 +1,7 @@
 rule prepare_protein_evidence:
 	input:
-		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz")),
-		ok = rules.split.output.checkpoint
+		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz"))
+		#ok = rules.split.output.checkpoint
 	params:
 		prefix = "{sample}",
 		mem = "8000",
