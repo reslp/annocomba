@@ -55,15 +55,15 @@ rule split:
 		assembly = rules.sort.output.assembly
 	output:
 		checkpoint = "checkpoints/{sample}/split.ok",
-		fastas = directory("results/{sample}/GENOME_PARTITIONS/")
 	singularity:
 		config["containers"]["funannotate"]
 	params:
 		n_batches = get_batch_number,
-		wd = os.getcwd()
+		wd = os.getcwd(),
+		fastas = "results/{sample}/GENOME_PARTITIONS/"
 	shell:
 		"""
-		cd {output.fastas}
+		cd {params.fastas}
 		{params.wd}/bin/split_fasta.py {params.wd}/{input} {params.n_batches}
 		cd {params.wd}
 		touch {output.checkpoint}
