@@ -76,7 +76,7 @@ run_MAKER_PASS1:
    J: rMP1
 #   ntasks: 20
 #   ntasks-per-node: 20
-   mem: 20G
+   mem: 10G
    time: "70:00:00"
 cleanup_MAKER_PASS1:
    J: cMP1
@@ -112,7 +112,7 @@ run_MAKER_PASS2:
    J: rMP2
 #   ntasks: 20
 #   ntasks-per-node: 20
-   mem: 20G
+   mem: 10G
    time: "70:00:00"
 cleanup_MAKER_PASS2:
    J: cMP2

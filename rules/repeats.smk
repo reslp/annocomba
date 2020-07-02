@@ -45,44 +45,44 @@ rule repeatmodeler:
 		fi
 		echo -e "\n$(date)\tFinished!\n"
 		"""
-#
-#rule cleanup_repeatmodeler:
-#	input:
-#		rules.repeatmodeler.output
-#	params:
-#		prefix = "{sample}"
-#	log:
-#		stdout = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stdout.txt",
-#		stderr = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stderr.txt"
-#	output:
-#		ok = "results/{sample}/REPEATMODELER/repeatmodeler.cleanup.ok"
-#	shell:
-#		"""
-#		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-#		basedir=$(pwd)
-#		
-#		cd results/{params.prefix}/REPEATMODELER
-#		for f in $(find ./ -type d -name "RM_*")
-#		do
-#			echo -e "\nCompressing $f\n"
-#			tar cfz $f.tar.gz $f
-#			
-#			if [ $? -eq 0 ]
-#			then
-#        			rm -rf $f
-#			else
-#        			echo -e "Some problem with $f"
-#			fi
-#		done
-#
-#		cd $basedir
-#		touch {output.ok}
-#
-#		echo -e "\n$(date)\tFinished!\n"
-#
-#		"""
-#
-#
+
+rule cleanup_repeatmodeler:
+	input:
+		rules.repeatmodeler.output
+	params:
+		prefix = "{sample}"
+	log:
+		stdout = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stdout.txt",
+		stderr = "results/{sample}/logs/REPEATMODELER.cleanup.{sample}.stderr.txt"
+	output:
+		ok = "results/{sample}/REPEATMODELER/repeatmodeler.cleanup.ok"
+	shell:
+		"""
+		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+		basedir=$(pwd)
+		
+		cd results/{params.prefix}/REPEATMODELER
+		for f in $(find ./ -type d -name "RM_*")
+		do
+			echo -e "\nCompressing $f\n"
+			tar cfz $f.tar.gz $f
+			
+			if [ $? -eq 0 ]
+			then
+       				rm -rf $f
+			else
+       				echo -e "Some problem with $f"
+			fi
+		done
+
+		cd $basedir
+		touch {output.ok}
+
+		echo -e "\n$(date)\tFinished!\n"
+
+		"""
+
+
 rule repeatmasker:
 	input:
 		fasta = rules.sort.output.assembly,

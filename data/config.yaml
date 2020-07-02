@@ -27,7 +27,7 @@ genemark:
    gmes_petap_params:
 aed:
    snap_pass2: "0.2"
-   AUGUSTUS_PASS2: ["0.0", "0.1", "0.2"]
+   AUGUSTUS_PASS2: ["0.1", "0.2"]
 
 cdhit:
    similarity: "0.98"
