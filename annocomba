@@ -16,7 +16,8 @@ usage() {
         echo "  -m <mode> Specify runmode, separated by comma. Options: all,maker,funannotate. Default: all"
 	echo
 	echo "  --setup This flag wil setup all programs and settings for running the pipeline."
-	echo "  --remove Resets the pipeline. Will delete all results, logs and checkpoints."
+	echo "  --remove=<maker|repeatmasker|repeatmodeler> Removes all results logs and checkpoints of specified analysis."
+	echo "  --reset Completely resets pipeline (except setup). Deletes all results, logs and checkpoints."
 	echo
         1>&2; exit 1; }
 
@@ -28,7 +29,8 @@ CLUSTER=""
 CLUSTER_CONFIg=""
 SETUP=""
 RUNMODE="all"
-REMOVE="FALSE"
+RESET="FALSE"
+REMOVE=""
 while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
@@ -42,7 +44,10 @@ while getopts ":v:t:c:s:m:-:" option;
 			-) LONG_OPTARG="${OPTARG#*}"
 				case $OPTARG in
 					setup) SETUP="TRUE" ;;
-					remove) REMOVE="TRUE" ;;
+					reset) RESET="TRUE" ;;
+					remove=maker) REMOVE="maker" ;;	
+					remove=repeatmasker) REMOVE="repeatmasker" ;;
+					remove=repeatmodeler) REMOVE="repeatmodeler" ;;			
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
@@ -52,7 +57,36 @@ while getopts ":v:t:c:s:m:-:" option;
         done
 if [ $OPTIND -eq 1 ]; then usage; fi
 
-if [[ $REMOVE == "TRUE" ]]; then
+if [[ $REMOVE == "maker" ]]; then
+	echo "WARNING: This command will delete MAKER results."
+        read -r -p "Are you sure [y/n]? " yn
+        if [[ $yn == "y" ]]; then
+	    	echo "Deleting MAKER results, logs and checkpoints..."
+                rm -r results/*/MAKER.PASS1
+		rm -r results/*/MAKER.PASS2
+                rm -r log/*MAKER*
+                rm -r checkpoints/*/*MAKER*
+                echo "...done"
+                exit 0
+        else
+                echo "Not deleting anything"
+                exit 0
+        fi
+fi
+if [[ $REMOVE == "repeatmasker" ]]; then
+        echo "WARNING: This command will delete RepeatMasker results."
+	echo "Not yet implemented."
+	exit 0
+fi
+
+if [[ $REMOVE == "repeatmodeler" ]]; then
+        echo "WARNING: This command will delete RepeatModeler results."
+        echo "Not yet implemented."
+        exit 0  
+fi
+
+
+if [[ $RESET == "TRUE" ]]; then
 	echo "WARNING: This command will delete all previously generated results."
 	read -r -p "Are you sure [y/n]? " yn
 	if [[ $yn == "y" ]]; then
@@ -176,3 +210,4 @@ else
   echo "Runmode not recognized: $RUNMODE. Available options are: all,maker,funannotate"
   exit 1
 fi
+
