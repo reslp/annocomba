@@ -169,6 +169,8 @@ rule cleanup_MAKER_PASS1:
 		dir = "{unit}",
 		prefix = "{sample}",
 		script = "bin/cleanup.sh"
+	singularity:
+		"docker://chrishah/premaker-plus:18"
 	output:
 		gzipped_results = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz",
 		ok = "checkpoints/{sample}/cleanup_MAKER_PASS1.{unit}.ok"
