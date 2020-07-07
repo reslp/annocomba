@@ -20,8 +20,11 @@ rule all:
 		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/MAKER_PASS1_init.ok", name=sample_data.index.tolist()),	
 		expand("results/{unit.sample}/MAKER.PASS1/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
-		#expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist()),
-		#expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist())
+		expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist()),
+		expand("checkpoints/{name}/MAKER.PASS2.init.ok", name=sample_data.index.tolist()),
+		expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist()),
+		expand("results/{unit.sample}/MAKER.PASS2/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples())
+
 
 include: "rules/setup_maker.smk"
 include: "rules/setup_funannotate.smk"

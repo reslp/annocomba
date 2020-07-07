@@ -302,6 +302,8 @@ rule pick_augustus_training_set:
 		best_params = directory("results/{sample}/AUGUSTUS.PASS2/training_params"),
 		gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff3",
 		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
+	singularity:
+		"docker://chrishah/premaker-plus:18"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -324,7 +326,7 @@ rule pick_augustus_training_set:
 		#	ln -s $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/$f {output.best_params}/$(echo "$f" | sed "s/^$best.//")
 		#done
 		
-		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.augustus.gff3 {output.gff}
+		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/augustus.gff3 {output.gff}
 		echo "$best" > {output.best_aed}
 
 		echo -e "\n$(date)\tFinished!\n"
@@ -501,6 +503,8 @@ rule cleanup_MAKER_PASS2:
 	output:
 		gzipped_results = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz",
 		ok = "checkpoints/{sample}/cleanup_MAKER_PASS2.{unit}.ok"
+	singularity:
+                "docker://chrishah/premaker-plus:18"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
