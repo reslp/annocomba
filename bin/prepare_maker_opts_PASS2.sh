@@ -1,14 +1,15 @@
 #!/bin/bash
 
 snaphmm=$1
-augustus_species=$2
-params=$3
-pred_gff=$4
-rm_gff=$5
-protein_gff=$6
-altest_gff=$7
-est_gff=$8
-local_config=$9
+gmhmm=$2
+augustus_species=$3
+params=$4
+pred_gff=$5
+rm_gff=$6
+protein_gff=$7
+altest_gff=$8
+est_gff=$9
+local_config=${10}
 
 if [ -s "$est_gff" ]
 then
@@ -34,6 +35,11 @@ if [ -s "$snaphmm" ]
 then
 	echo -e "SNAP hmms provided: $snaphmm"
 	sed -i "s?snaphmm= ?snaphmm=$snaphmm ?" maker_opts.ctl
+fi
+if [ -s "$gmhmm" ]
+then
+	echo -e "Genemark model provided: $gmhmm"
+	sed -i "s?^gmhmm= ?gmhmm=$gmhmm ?" maker_opts.ctl
 fi
 if [ $augustus_species ] && [ -d "$params" ]
 then
