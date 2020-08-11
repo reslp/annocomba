@@ -119,11 +119,11 @@ rule initiate_MAKER_PASS1:
 rule run_MAKER_PASS1:
 	input:
 		init_ok = rules.initiate_MAKER_PASS1.output.ok,
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		split_ok = rules.split.output.checkpoint
 	params:
 		dir = "{unit}",
-		prefix = "{sample}"
+		prefix = "{sample}",
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
 	threads: config["threads"]["run_MAKER_PASS1"]
 	singularity:
 		"docker://chrishah/premaker-plus:18"
@@ -143,7 +143,7 @@ rule run_MAKER_PASS1:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 		cd results/{params.prefix}/MAKER.PASS1/{params.dir}
-		ln -s $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
+		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} ../maker_opts.ctl ../maker_bopts.ctl ../maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -451,11 +451,11 @@ rule initiate_MAKER_PASS2:
 rule run_MAKER_PASS2:
 	input:
 		split_ok = rules.split.output.checkpoint,
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		init_ok = rules.initiate_MAKER_PASS2.output.ok
 	params:
 		dir = "{unit}",
-		prefix = "{sample}"
+		prefix = "{sample}",
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
 	threads: config["threads"]["run_MAKER_PASS2"]
 	singularity:
 		"docker://chrishah/premaker-plus:18"
@@ -476,8 +476,8 @@ rule run_MAKER_PASS2:
 		cd results/{params.prefix}/MAKER.PASS2/{params.dir}
 		
 		# removed symlink and copy file instead to prevent ChildIOException
-		#ln -s $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
-		cp -p $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
+		#ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
+		cp -p $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
 		ln -fs $basedir/.gm_key .
