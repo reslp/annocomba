@@ -119,9 +119,9 @@ rule initiate_MAKER_PASS1:
 rule run_MAKER_PASS1:
 	input:
 		init_ok = rules.initiate_MAKER_PASS1.output.ok,
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		split_ok = rules.split.output.checkpoint
 	params:
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		dir = "{unit}",
 		prefix = "{sample}"
 	threads: config["threads"]["run_MAKER_PASS1"]
@@ -143,7 +143,7 @@ rule run_MAKER_PASS1:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 		cd results/{params.prefix}/MAKER.PASS1/{params.dir}
-		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
+		ln -s $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} ../maker_opts.ctl ../maker_bopts.ctl ../maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -231,7 +231,7 @@ rule AUGUSTUS_PASS2:
 		stdout = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/AUGUSTUS.PASS2/{aed}/{aed}.augustus.done",
+		ok = "results/{sample}/checkpoints/{aed}.augustus.done",
 		training_params = directory("results/{sample}/AUGUSTUS.PASS2/{aed}/{aed}.{sample}")
 	shell:
 		"""
@@ -294,14 +294,15 @@ rule AUGUSTUS_PASS2:
 		"""
 rule pick_augustus_training_set:
 	input:
-		lambda wildcards: expand("results/{{sample}}/AUGUSTUS.PASS2/{aed}/{aed}.augustus.done", sample=wildcards.sample, aed=config["aed"]["AUGUSTUS_PASS2"])
+		lambda wildcards: expand("results/{{sample}}/checkpoints/{aed}.augustus.done", sample=wildcards.sample, aed=config["aed"]["AUGUSTUS_PASS2"])
 	params:
 		aeds = expand("{aed}", aed=config["aed"]["AUGUSTUS_PASS2"]),
-		prefix = "{sample}"
-	output:
-		best_params = directory("results/{sample}/AUGUSTUS.PASS2/training_params"),
+		prefix = "{sample}",
+		best_params = "results/{sample}/AUGUSTUS.PASS2/training_params",
 		gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff3",
 		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
+	output:
+		ok = "results/{sample}/checkpoints/pick_augustus_training_set.done"
 	singularity:
 		"docker://chrishah/premaker-plus:18"
 	shell:
@@ -318,24 +319,25 @@ rule pick_augustus_training_set:
 		best=$(cat results/{params.prefix}/AUGUSTUS.PASS2/summary.tsv | tr . , | sort -n -k 2 | cut -f 1 | tr , . | tail -n 1)
 		echo "{params.prefix}: Best training accuracy was achieved with cutoff $best"
 
-		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix} {output.best_params}
+		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix} {params.best_params}
 		
-		#mkdir {output.best_params}
+		#mkdir {params.best_params}
 		#for f in $(ls -1 results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/)
 		#do
-		#	ln -s $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/$f {output.best_params}/$(echo "$f" | sed "s/^$best.//")
+		#	ln -s $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/$f {params.best_params}/$(echo "$f" | sed "s/^$best.//")
 		#done
 		
-		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/augustus.gff3 {output.gff}
-		echo "$best" > {output.best_aed}
-
+		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/augustus.gff3 {params.gff}
+		echo "$best" > {params.best_aed}
+		touch {output.ok}
+		
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
 rule snap_pass2:
 	input:
 		rules.merge_MAKER_PASS1.output.all_gff,
-		rules.pick_augustus_training_set.output.best_aed
+		rules.pick_augustus_training_set.output.ok
 	params:
 #		aed = config["aed"]["snap_pass2"],
 		prefix = "{sample}",
@@ -356,7 +358,7 @@ rule snap_pass2:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 		#get best aed cutoff from AUGUSTUS
-		aed=$(cat {input[1]})
+		aed=$(cat results/AUGUSTUS.PASS2/{params.prefix}.best_aed)
 
 		if [[ ! -d results/{params.prefix}/SNAP.PASS2 ]]
 		then
@@ -375,19 +377,19 @@ rule snap_pass2:
 
 rule initiate_MAKER_PASS2:
 	input:
-		pred_gff = rules.pick_augustus_training_set.output.gff,
-		params = rules.pick_augustus_training_set.output.best_params,
 		snaphmm = rules.snap_pass2.output.snap_hmm,
 		MP1_ok = rules.merge_MAKER_PASS1.output,
-		gmhmm = rules.genemark.output.model,
-		best_aed = rules.pick_augustus_training_set.output.best_aed
+		gmhmm = rules.genemark.output.model
 	params:
 		prefix = "{sample}",
 		script = "bin/prepare_maker_opts_PASS2.sh",
 		protein_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.protein2genome.gff",
 		rm_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.repeats.gff",
 		altest_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.cdna2genome.gff",
-		est_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.est2genome.gff"
+		est_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.est2genome.gff",
+		pred_gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff",
+		params = "results/{sample}/AUGUSTUS.PASS2/training_params",
+		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
 	singularity:
 		"docker://chrishah/premaker-plus:18"
 	log:
@@ -400,7 +402,7 @@ rule initiate_MAKER_PASS2:
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 		basedir=$(pwd)
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
-		aed=$(cat {input.best_aed})
+		aed=$(cat {params.best_aed})
 
 		if [[ ! -d results/{params.prefix}/MAKER.PASS2 ]]
 		then
@@ -423,8 +425,8 @@ rule initiate_MAKER_PASS2:
 		$basedir/{input.snaphmm} \
 		$basedir/{input.gmhmm} \
 		$aed.{params.prefix} \
-		$basedir/{input.params} \
-		$basedir/{input.pred_gff} \
+		$basedir/{params.params} \
+		$basedir/{params.pred_gff} \
 		$basedir/{params.rm_gff} \
 		$basedir/{params.protein_gff} \
 		$basedir/{params.altest_gff} \
@@ -449,9 +451,9 @@ rule initiate_MAKER_PASS2:
 rule run_MAKER_PASS2:
 	input:
 		split_ok = rules.split.output.checkpoint,
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		init_ok = rules.initiate_MAKER_PASS2.output.ok
 	params:
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
 		dir = "{unit}",
 		prefix = "{sample}"
 	threads: config["threads"]["run_MAKER_PASS2"]
@@ -472,10 +474,13 @@ rule run_MAKER_PASS2:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 		cd results/{params.prefix}/MAKER.PASS2/{params.dir}
-		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
-
+		
+		# removed symlink and copy file instead to prevent ChildIOException
+		#ln -s $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
+		cp -p $basedir/{input.sub} {params.prefix}.{params.dir}.fasta
+		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
-		ln -fs $basedir/results/{params.prefix}/GENEMARK/.gm_key .
+		ln -fs $basedir/.gm_key .
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} ../maker_opts.ctl ../maker_bopts.ctl ../maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
