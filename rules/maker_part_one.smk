@@ -63,6 +63,9 @@ rule split:
 		fastas = "results/{sample}/GENOME_PARTITIONS/"
 	shell:
 		"""
+		if [[ ! -d {params.fastas} ]]; then
+			mkdir {params.fastas}
+		fi
 		cd {params.fastas}
 		{params.wd}/bin/split_fasta.py {params.wd}/{input} {params.n_batches}
 		cd {params.wd}
