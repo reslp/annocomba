@@ -358,7 +358,7 @@ rule snap_pass2:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 		#get best aed cutoff from AUGUSTUS
-		aed=$(cat results/AUGUSTUS.PASS2/{params.prefix}.best_aed)
+		aed=$(cat results/{params.prefix}/AUGUSTUS.PASS2/{params.prefix}.best_aed)
 
 		if [[ ! -d results/{params.prefix}/SNAP.PASS2 ]]
 		then
