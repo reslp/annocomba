@@ -70,6 +70,6 @@ threads:
         repeatmasker: 8
         prepare_protein_evidence: 8
         run_MAKER_PASS1: 8
-        AUGUSTUS_PASS2: 10
+        AUGUSTUS_PASS2: 1
         run_MAKER_PASS2: 8
 
