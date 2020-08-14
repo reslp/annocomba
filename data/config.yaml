@@ -6,8 +6,8 @@ split_min_length: 1000
 maker_tarball: data/external/maker-2.31.10.tgz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
 funannotate_databases: all
-busco_set: "eukaryota"
-busco_species: fly
+busco_set: "dikarya"
+busco_species: anidulans
 
 # This database can be huge: NOG contains approx 2mio files.
 eggnog_database: "NOG"
@@ -46,6 +46,7 @@ predict:
         ploidy: 1
         busco_db: "dikarya"
         threads: 48
+        maker_weight: 2
 remote:
         methods: "all"
         email: "philipp.resl@uni-graz.at"

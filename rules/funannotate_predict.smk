@@ -5,7 +5,7 @@ rule predict:
 		maker_gff = rules.merge_MAKER_PASS2.output.all_gff,
 		genemark_ok = rules.genemark.output.ok
 	output:
-		"results/{sample}/checkpoints/{sample}_FUNANNOTATE_predict.done"
+		"checkpoints/{sample}/FUNANNOTATE_predict.done"
 	params:
 		folder = "{sample}",
 		pred_folder = get_contig_prefix,
@@ -14,6 +14,7 @@ rule predict:
 		busco_seed_species = config["predict"]["busco_seed_species"],
 		ploidy = config["predict"]["ploidy"],
 		busco_db = config["predict"]["busco_db"],
+		maker_weight= config["predict"]["maker_weight"],
 		wd = os.getcwd()
 	singularity:
 		config["containers"]["funannotate"]
@@ -27,7 +28,7 @@ rule predict:
 			mkdir results/{params.folder}/FUNANNOTATE
 		fi
 		cd results/{params.folder}/FUNANNOTATE
-		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:1 --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& ../{log}
+		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:{params.maker_weight} --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& ../{log}
 		touch ../../../{output}
 		""" 
 
@@ -35,7 +36,7 @@ rule tarpredict:
 	input:
 		{rules.predict.output}
 	output:
-		"results/{sample}/checkpoints/{sample}_FUNANNOTATE_tarpredict.done"
+		"checkpoints/{sample}/FUNANNOTATE_tarpredict.done"
 	params:
 		pred_folder = get_contig_prefix,
 		folder = "{sample}"
