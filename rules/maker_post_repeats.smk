@@ -231,7 +231,7 @@ rule AUGUSTUS_PASS2:
 		stdout = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stderr.txt"
 	output:
-		ok = "results/{sample}/checkpoints/{aed}.augustus.done",
+		ok = "checkpoints/{sample}/{aed}.augustus.ok",
 		training_params = directory("results/{sample}/AUGUSTUS.PASS2/{aed}/{aed}.{sample}")
 	shell:
 		"""
@@ -294,7 +294,7 @@ rule AUGUSTUS_PASS2:
 		"""
 rule pick_augustus_training_set:
 	input:
-		lambda wildcards: expand("results/{{sample}}/checkpoints/{aed}.augustus.done", sample=wildcards.sample, aed=config["aed"]["AUGUSTUS_PASS2"])
+		lambda wildcards: expand("checkpoints/{{sample}}/{aed}.augustus.ok", sample=wildcards.sample, aed=config["aed"]["AUGUSTUS_PASS2"])
 	params:
 		aeds = expand("{aed}", aed=config["aed"]["AUGUSTUS_PASS2"]),
 		prefix = "{sample}",
@@ -302,7 +302,7 @@ rule pick_augustus_training_set:
 		gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff3",
 		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
 	output:
-		ok = "results/{sample}/checkpoints/pick_augustus_training_set.done"
+		ok = "checkpoints/{sample}/pick_augustus_training_set.ok"
 	singularity:
 		"docker://chrishah/premaker-plus:18"
 	shell:
