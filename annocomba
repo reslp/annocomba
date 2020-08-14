@@ -130,16 +130,17 @@ if [[ $SETUP == "TRUE" ]]; then
 		exit 1
 	fi
 	EGG=""
-	if [[ ! -d "data/eggnog_database/" ]]; then
+	if [[ ! -d "data/eggnog_database" ]]; then
                 mkdir data/eggnog_database
-        fi
-
-	if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_eggnog --cores 1  ; then
-		echo "EGGNOG for annocomba setup complete."
-		EGG="done"
+		if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_eggnog --cores 1  ; then
+			echo "EGGNOG for annocomba setup complete."
+			EGG="done"
+		else
+			echo "Error during EGGNOG setup."
+			exit 1
+		fi
 	else
-		echo "Error during EGGNOG setup."
-		exit 1
+		echo "Directory for eggnogdb seems to exist. Will skip this setup part"
 	fi
 
 	if [[ ! -d data/external/gmes_linux_64/ ]]; then
