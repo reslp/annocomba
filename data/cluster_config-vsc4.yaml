@@ -22,8 +22,12 @@ mask:
    ntasks-per-node: 96 
 predict:
    J: pred
+   mem: 94G
    hint: multithread
    ntasks-per-node: 48
+tarpredict:
+   J: tarpred
+   ntasks-per-node: 1
 iprscan:
    J: ipr
    hint: multithread
