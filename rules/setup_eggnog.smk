@@ -7,6 +7,6 @@ rule setup_eggnog:
 		config["containers"]["eggnog_mapper"]
 	shell:
 		"""
-		download_eggnog_data.py {params.database} -y --data_dir data/eggnogdb_database/
+		download_eggnog_data.py {params.database} -y --data_dir data/eggnog_database/
 		touch {output}
 		"""
