@@ -42,11 +42,11 @@ fi
 
 if [ -f "$cdna" ]
 then
-	cmd="autoAug.pl --genome=$fasta --species=$prefix --trainingset=$proteins --cdna=$cdna --singleCPU --threads $threads -v --useexisting"
+	cmd="autoAug.pl --genome=$fasta --species=$prefix --trainingset=$proteins --cdna=$cdna --singleCPU -v --useexisting"
 	echo -e "[$(date)]\tRunning autoAug.pl with cdna evidence:\n$cmd"
 	$cmd
 else
-	cmd="autoAug.pl --genome=$fasta --species=$prefix --trainingset=$proteins --singleCPU --threads $threads -v --useexisting"
+	cmd="autoAug.pl --genome=$fasta --species=$prefix --trainingset=$proteins --singleCPU -v --useexisting"
 	echo -e "[$(date)]\tRunning autoAug.pl without cdna evidence:\n$cmd"
 	$cmd
 fi
