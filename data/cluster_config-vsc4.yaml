@@ -31,13 +31,17 @@ tarpredict:
 iprscan:
    J: ipr
    hint: multithread
+   mem: 92G
    ntasks-per-node: 48
 remote:
    J: rem
 eggnog:
    J: egg
    hint: multithread
+   mem: 92G
    ntasks-per-node: 48
+get_functions:
+   J: getfun
 annotate:
    J: anno
    hint: multithread

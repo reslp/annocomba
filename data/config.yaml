@@ -21,6 +21,10 @@ containers:
         busco: docker://chrishah/busco-docker:v3.1.0
         cegma: docker://chrishah/cegma:2.5
 
+# this is to specify external software in data/external
+software:
+        iprscan_version: "5.39-77.0"        
+
 # MAKER specific setting
 genemark:
    genemark_dir: data/external/gmes_linux_64
