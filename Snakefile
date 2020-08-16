@@ -25,7 +25,8 @@ rule all:
 		expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist()),
 		expand("results/{unit.sample}/MAKER.PASS2/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
 		expand("checkpoints/{name}/FUNANNOTATE_tarpredict.done", name=sample_data.index.tolist()),
-		expand("checkpoints/{name}/get_functions.done", name=sample_data.index.tolist())
+		expand("checkpoints/{name}/get_functions.done", name=sample_data.index.tolist()),
+		"checkpoints/FUNANNOTATE_compare.done"
 
 include: "rules/setup_maker.smk"
 include: "rules/setup_funannotate.smk"
@@ -36,3 +37,5 @@ include: "rules/repeats.smk"
 include: "rules/maker_post_repeats.smk"
 include: "rules/funannotate_predict.smk"
 include: "rules/funannotate_get_functions.smk"
+include: "rules/funannotate_final_steps.smk"
+

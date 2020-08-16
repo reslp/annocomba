@@ -19,7 +19,7 @@ rule predict:
 	singularity:
 		config["containers"]["funannotate"]
 	log:
-		"logs/FUNANNOTATE_{sample}_predict.log"
+		"results/{sample}/logs/FUNANNOTATE_predict.log"
 	threads: config["predict"]["threads"] 
 	shell:
 		"""
@@ -28,7 +28,7 @@ rule predict:
 			mkdir results/{params.folder}/FUNANNOTATE
 		fi
 		cd results/{params.folder}/FUNANNOTATE
-		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:{params.maker_weight} --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& ../{log}
+		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:{params.maker_weight} --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& {params.wd}/{log}
 		touch ../../../{output}
 		""" 
 

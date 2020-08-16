@@ -58,6 +58,7 @@ eggnog:
         threads: 48
 annotate:
         threads: 48
+        buscodb: "dikarya"
 # in case yes is specified for phylogeny or histograms, it is important that no more than 60 species are analysed (histograms)
 # for phylogeny names have to be unique because they are truncated to 10 characters before raxml or iqtree is called
 compare:

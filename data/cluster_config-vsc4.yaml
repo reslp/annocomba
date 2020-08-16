@@ -45,10 +45,12 @@ get_functions:
 annotate:
    J: anno
    hint: multithread
+   mem: 94G
    ntasks-per-node: 48
 compare:
    J: compare
    hint: multithread
+   mem: 94G
    ntasks-per-node: 48
 split:
    J: split
