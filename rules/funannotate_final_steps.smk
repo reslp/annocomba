@@ -43,13 +43,18 @@ if config["compare"]["phylogeny"] == "yes" or config["compare"]["histograms"] ==
                 threads: config["compare"]["threads"]
                 shell:
                         """
-                        funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
-                        cp -r funannotate_compare results/
-                        cp funannotate_compare.tar.gz results/
-                        mv results/funannotate_compare results/FUNANNOTATE_COMPARE
-			rm -rf funannotate_compare
-			rm funannotate_compare.tar.gz
-			touch {output.checkpoint}
+			if [ $(echo {input.folders} | wc -w) -gt 1 ]; then
+                        	funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
+                        	cp -r funannotate_compare results/
+                        	cp funannotate_compare.tar.gz results/
+                        	mv results/funannotate_compare results/FUNANNOTATE_COMPARE
+				rm -rf funannotate_compare
+				rm funannotate_compare.tar.gz
+				touch {output.checkpoint}
+			else
+				echo "Not enough species to run funannotate compare" >& {log}
+				touch {output.checkpoint}
+			fi
                         """	
 else:
 	rule compare:
@@ -69,11 +74,16 @@ else:
 		threads: config["compare"]["threads"]
 		shell:
 			"""
-			funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
-			cp -r funannotate_compare results/
-                        cp funannotate_compare.tar.gz results/
-			mv results/funannotate_compare results/FUNANNOTATE_COMPARE
-                        rm -rf funannotate_compare
-                        rm funannotate_compare.tar.gz
-			touch {output.checkpoint}
+			if [ $(echo {input.folders} | wc -w) -gt 1 ]; then
+				funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
+				cp -r funannotate_compare results/
+                        	cp funannotate_compare.tar.gz results/
+				mv results/funannotate_compare results/FUNANNOTATE_COMPARE
+                        	rm -rf funannotate_compare
+                        	rm funannotate_compare.tar.gz
+				touch {output.checkpoint}
+			else
+				echo "Not enough species to run funannotate compare" >& {log}
+                                touch {output.checkpoint}
+                        fi
 			"""
