@@ -472,7 +472,8 @@ rule run_MAKER_PASS2:
 		prot_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.proteins.fasta",
                 transcripts_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.transcripts.fasta",
 		gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.gff",
-		noseq_gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.noseq.maker.gff"
+		noseq_gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.noseq.maker.gff",
+		ok = "checkpoints/{sample}/MAKER.PASS2.{unit}.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -480,17 +481,16 @@ rule run_MAKER_PASS2:
 		basedir=$(pwd)
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
-		cd results/{params.prefix}/MAKER.PASS2/{params.dir}
+		mkdir {params.dir}
+		cd {params.dir}
 		
-		# removed symlink and copy file instead to prevent ChildIOException
-		#ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
-		cp -p $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
+		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
 		ln -fs $basedir/.gm_key .
 
 		#run MAKER
-		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} ../maker_opts.ctl ../maker_bopts.ctl ../maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
 		cd {params.prefix}.{params.dir}.maker.output
@@ -499,9 +499,10 @@ rule run_MAKER_PASS2:
 		gff3_merge -n -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.noseq.maker.gff
 		cd ..
 
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* .
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* .
+		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir}
+		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir}
 		
+		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
