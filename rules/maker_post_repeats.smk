@@ -125,13 +125,16 @@ rule run_MAKER_PASS1:
 		prefix = "{sample}",
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
 	threads: config["threads"]["run_MAKER_PASS1"]
+	shadow: "shallow"
 	singularity:
 		"docker://chrishah/premaker-plus:18"
 	log:
 		stdout = "results/{sample}/logs/MAKER.PASS1.run.{sample}.{unit}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS1.run.{sample}.{unit}.stderr.txt"
 	output:
-		sub_fasta = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.fasta",
+		#sub_fasta = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.fasta",
+		prot_fasta = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.all.maker.proteins.fasta",
+		transcripts_fasta = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.all.maker.transcripts.fasta",
 		gff = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.noseq.maker.gff",
 		ok = "checkpoints/{sample}/MAKER.PASS1.{unit}.ok"
@@ -142,21 +145,22 @@ rule run_MAKER_PASS1:
 		basedir=$(pwd)
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
-		cd results/{params.prefix}/MAKER.PASS1/{params.dir}
+		mkdir {params.dir}
+		cd {params.dir}
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
-		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} ../maker_opts.ctl ../maker_bopts.ctl ../maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
 		cd {params.prefix}.{params.dir}.maker.output
 		gff3_merge -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.all.maker.gff
 		fasta_merge -d {params.prefix}.{params.dir}_master_datastore_index.log
 		gff3_merge -n -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.noseq.maker.gff
-		cd ..
 
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* .
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* .
+		#ln -s $basedir/{params.sub} $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
+		mv {params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
+		mv {params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
 	
 		touch $basedir/{output.ok}	
 		echo -e "\n$(date)\tFinished!\n"
@@ -452,6 +456,7 @@ rule run_MAKER_PASS2:
 	input:
 		split_ok = rules.split.output.checkpoint,
 		init_ok = rules.initiate_MAKER_PASS2.output.ok
+	shadow: "shallow"
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
@@ -463,7 +468,9 @@ rule run_MAKER_PASS2:
 		stdout = "results/{sample}/logs/MAKER.PASS2.run.{sample}.{unit}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS2.run.{sample}.{unit}.stderr.txt"
 	output:
-		sub_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.fasta",
+		#sub_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.fasta",
+		prot_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.proteins.fasta",
+                transcripts_fasta = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.transcripts.fasta",
 		gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.noseq.maker.gff"
 	shell:
