@@ -11,9 +11,9 @@ rule predict:
 		pred_folder = get_contig_prefix,
 		sample_name = "{sample}",
 		organism = config["predict"]["organism"],
-		busco_seed_species = config["predict"]["busco_seed_species"],
+		busco_seed_species = config["busco_species"],
 		ploidy = config["predict"]["ploidy"],
-		busco_db = config["predict"]["busco_db"],
+		busco_db = config["busco_set"],
 		maker_weight= config["predict"]["maker_weight"],
 		wd = os.getcwd()
 	singularity:

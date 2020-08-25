@@ -8,7 +8,7 @@ rule annotate:
 	params:
 		folder="{sample}",
 		pred_folder=get_contig_prefix,
-		buscodb=config["annotate"]["buscodb"]
+		buscodb=config["busco_set"]
 	log:
 		"results/{sample}/logs/FUNANNOTATE_annotate.log"
 	singularity:
