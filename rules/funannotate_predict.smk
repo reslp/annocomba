@@ -29,7 +29,17 @@ rule predict:
 		fi
 		cd results/{params.folder}/FUNANNOTATE
 		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:{params.maker_weight} --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& {params.wd}/{log}
-		touch ../../../{output}
+		
+		cd {params.pred_folder}_preds/predict_misc	
+		
+		tar -cvf EVM_busco.tar EVM_busco && rm -r EVM_busco
+                tar -cvf busco.tar busco && rm -r busco
+                tar -cvf genemark.tar genemark && rm -r genemark
+                tar -cvf busco_proteins.tar busco_proteins && rm -r busco_proteins
+                tar -cvf EVM.tar EVM && rm -r EVM
+
+		touch ../../../../../{output}
+
 		""" 
 
 rule tarpredict:
