@@ -141,6 +141,7 @@ if [[ $SETUP == "TRUE" ]]; then
 		fi
 	else
 		echo "Directory for eggnogdb seems to exist. Will skip this setup part"
+		EGG="done"
 	fi
 
 	if [[ ! -d data/external/gmes_linux_64/ ]]; then
