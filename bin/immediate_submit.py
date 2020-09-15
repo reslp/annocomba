@@ -71,7 +71,7 @@ elif subs == "sge":
 	cmdline = ["qsub"]
 	
 	# TODO: add correct thread handling for SGE clusters
-	sge_args = "-cwd -V -q {queue} -l h_vmem={mem} -pe {queue} {ntasks} -o {output} -e {error} -N {N}".format(**job_properties["cluster"])	
+	sge_args = "-cwd -V -q {queue} -l h_vmem={mem} -pe {pe} {ntasks} -o {output} -e {error} -N {N}".format(**job_properties["cluster"])	
 	cmdline.append(sge_args)
 
 	#now work on dependencies
