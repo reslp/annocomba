@@ -10,6 +10,7 @@ data/protein_evidence/
 .DS_Store
 results/
 log/
+!log/.gitkeep
 data/eggnogdb
 data/RepeatMaskerLibraries
 .interproscan-5/
@@ -33,3 +34,4 @@ data/eggnogdb_database
 rulegraph
 checkpoints/
 .parallel/
+
