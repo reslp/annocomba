@@ -31,7 +31,7 @@ SETUP=""
 RUNMODE="all"
 RESET="FALSE"
 REMOVE=""
-while getopts ":v:t:c:s:m:-:" option;
+while getopts ":v:t:c:s:m:i:-:" option;
         do
                 case "${option}"
                 in
