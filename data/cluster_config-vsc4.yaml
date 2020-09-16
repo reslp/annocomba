@@ -4,7 +4,7 @@ __default__:
    ntasks: 1
    J: default
    hint: nomultithread
-   mem: 4G
+   mem: 8G
    reservation: p71312_12
    partition: mem_0096 
    qos: mem_0096
@@ -73,7 +73,7 @@ snap_pass1:
    J: snap1
    mem: 4G
 prepare_protein_evidence:
-   J: CDH0
+   J: CDH
 #   ntasks: 8
 #   ntasks-per-node: 8
    mem: 20G
