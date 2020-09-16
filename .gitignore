@@ -29,7 +29,7 @@ bin/maker
 bin/RepeatMasker
 data/config
 data/funannotate_database/
-data/eggnog_database
+data/eggnog_database/
 data/eggnogdb_database
 !data/eggnog_database/.gitkeep
 rulegraph
