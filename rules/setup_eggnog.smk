@@ -1,6 +1,6 @@
 rule setup_eggnog:
 	output:	
-		"data/eggnogdb_database/.setup.done"
+		"data/eggnog_database/.setup.done"
 	params:
 		database = config["eggnog_database"]
 	singularity:
