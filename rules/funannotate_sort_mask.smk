@@ -21,7 +21,7 @@ rule clean:
                         mkdir results/{params.folder}
                 fi
                 cd results/{params.folder}
-                funannotate clean -i ../../{input.assembly} -o ../../{output.assembly} --minlen {params.minlen}  &> ../../{log}
+                funannotate clean -i {input.assembly} -o ../../{output.assembly} --minlen {params.minlen}  &> ../../{log}
                 cd {params.wd}
 		touch {output.ok}
 		"""
