@@ -11,32 +11,39 @@ email="philipp.resl@uni-graz.at"
 
 #sample_data = pd.read_table(config["samples"]).set_index("sample", drop=False)
 def get_assembly_path(wildcards):
-# this is to get the assembly path information for the sample from the CSV file
-        return sample_data.loc[wildcards.sample, ["assembly_path"]].to_list()
+	# this is to get the assembly path information for the sample from the CSV file
+	pathlist = []
+	#quick check if path is absolute. if not make it absolute
+	for path in sample_data.loc[wildcards.sample, ["assembly_path"]].to_list():
+		if os.path.isabs(path):
+			pathlist.append(path)
+		else:
+			pathlist.append(os.path.abspath(path))	
+	return pathlist
 
 def get_contig_prefix(wildcards):
-        return sample_data.loc[wildcards.sample, ["contig_prefix"]].to_list()
+	return sample_data.loc[wildcards.sample, ["contig_prefix"]].to_list()
 
 def get_premasked_state(wildcards):
-        return sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1]
+	 sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1]
 
 def get_all_samples(wildcards):
-        sam = sample_data["contig_prefix"].tolist()
-        sam = [sample+"s" for sample in sam].join()
-        return sam
+	sam = sample_data["contig_prefix"].tolist()
+	sam = [sample+"s" for sample in sam].join()
+	return sam
 
 def get_batch_number(wildcards):
 	return sample_data.loc[wildcards.sample, ["batches"]].to_list()
 
 def get_transcripts_path(wildcards, p="data/transcripts/*"):
-        #get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
-        dic = {'alt_ests': [], 'ests': []}
-        for f in glob.glob(p):
-                if f.split("/")[-1].startswith(wildcards.sample):
-                        dic['ests'].append(os.path.abspath(f))
-                else:
-                        dic['alt_ests'].append(os.path.abspath(f))
-        return dic
+	#get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
+	dic = {'alt_ests': [], 'ests': []}
+	for f in glob.glob(p):
+		if f.split("/")[-1].startswith(wildcards.sample):
+			dic['ests'].append(os.path.abspath(f))
+		else:
+			dic['alt_ests'].append(os.path.abspath(f))
+	return dic
 
 
 # code to calculate and prepare the number of batches so that snakemake knows how many jobs to spawn
