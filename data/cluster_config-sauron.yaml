@@ -5,12 +5,16 @@ __default__:
    mem: 8G
    output: $(pwd)/log/sauron-%j.out
    error: $(pwd)/log/sauron-%j.err
-   pe: mpi1node
+   pe: smp
 clean:
    hint: nomultithread
    N: clean 
+   mem: 8G
+   ntasks: 8
 sort:
    N: sort
+   mem: 8G
+   ntasks: 8
 mask:
    N: mask
    hint: multithread
