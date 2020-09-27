@@ -102,14 +102,14 @@ rule genemark:
 			if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
 			then
 				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
-				rm results/{params.prefix}/GENEMARK
+				rm -rf results/{params.prefix}/GENEMARK
 				mkdir results/{params.prefix}/GENEMARK
 			fi
                 fi
                 cd results/{params.prefix}/GENEMARK
 		
-		# this could go to --setup
-		#ln -sf $basedir/{params.genemark_dir}/gm_key .gm_key
+		# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
+		ln -sf $basedir/{params.genemark_dir}/gm_key .gm_key
 
 		if [ "{params.gmes_petap_params}" == "None" ]
 		then
