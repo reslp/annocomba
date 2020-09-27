@@ -10,7 +10,7 @@ include: "rules/utilities.smk"
 
 rule all:
 	input:
-		expand("results/{name}/{name}_cleaned.fas", name=sample_data.index.tolist()),
+#		expand("results/{name}/{name}_cleaned.fas", name=sample_data.index.tolist()),
 		expand("results/{name}/{name}_sorted.fas", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/split.ok", name= sample_data.index.tolist()),
 		expand("checkpoints/{name}/genemark.status.ok", name=sample_data.index.tolist()),
@@ -19,11 +19,11 @@ rule all:
 		expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmasker.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/MAKER_PASS1_init.ok", name=sample_data.index.tolist()),	
-		expand("results/{unit.sample}/MAKER.PASS1/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
+#		expand("results/{unit.sample}/MAKER.PASS1/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
 		expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/MAKER.PASS2.init.ok", name=sample_data.index.tolist()),
 		expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist()),
-		expand("results/{unit.sample}/MAKER.PASS2/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
+#		expand("results/{unit.sample}/MAKER.PASS2/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
 		expand("checkpoints/{name}/FUNANNOTATE_tarpredict.done", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/get_functions.done", name=sample_data.index.tolist()),
 		"checkpoints/FUNANNOTATE_compare.done"
