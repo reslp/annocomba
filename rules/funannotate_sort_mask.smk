@@ -61,14 +61,16 @@ else:
         	params:
         		folder = "{sample}",
         		contig_prefix = get_contig_prefix,
-        		wd = os.getcwd()
+        		wd = os.getcwd(),
+                        minlen = config["clean"]["minlen"],
+			script = "bin/lengthfilter.py"
         	threads: 1
         	singularity:
         		config["containers"]["funannotate"]
         	shell:
         		"""
         		cd results/{params.folder}
-        		funannotate sort -i {input.assembly} -o ../../{output.assembly} -b {params.contig_prefix} &> ../../{log}
-        		cd {params.wd}
-        		touch {output.ok}
+                        funannotate sort -i {input.assembly} -o {params.folder}_sorted.all.fasta -b {params.contig_prefix} &> {params.wd}/{log}
+        		{params.wd}/{params.script} {params.folder}_sorted.all.fasta {params.minlen} > {params.wd}/{output.assembly}
+        		touch {params.wd}/{output.ok}
         		"""

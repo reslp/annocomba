@@ -1,8 +1,6 @@
 #General settings:
 
 samples: "data/data.csv"
-split_batch_length: 3000000
-split_min_length: 1000
 maker_tarball: data/external/maker-2.31.10.tgz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
 funannotate_databases: all
@@ -42,7 +40,7 @@ cdhit:
 # funannotate specific settings
 clean:
         run: 0
-        minlen: 5000
+        minlen: 1000
 mask:
         method: "repeatmasker"
         threads: 48
@@ -68,13 +66,13 @@ compare:
         num_orthos: 10
 
 threads:
-        genemark: 8
-        busco: 8
-        cegma: 8
-        repeatmodeler: 8
-        repeatmasker: 8
+        genemark: 16
+        busco: 16
+        cegma: 16
+        repeatmodeler: 16
+        repeatmasker: 16
         prepare_protein_evidence: 8
-        run_MAKER_PASS1: 8
+        run_MAKER_PASS1: 16
         AUGUSTUS_PASS2: 1
-        run_MAKER_PASS2: 8
+        run_MAKER_PASS2: 16
 
