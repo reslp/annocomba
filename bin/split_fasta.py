@@ -5,6 +5,8 @@ usage: ./split_fasta.py test.fasta(.gz) 50
 """
 
 import sys
+import random
+from Bio import SeqIO
 
 def check(args):
     import os.path
@@ -38,7 +40,6 @@ def setup_dic(n):
     return dic
 
 def reset(n):
-    import random
     l = []
     for i in range(1,n+1):
         l.append(i)
@@ -46,7 +47,6 @@ def reset(n):
     return l
 
 def distribute(fh, n, dic):
-    from Bio import SeqIO
     counter = 0
     for r in SeqIO.parse(fh, "fasta"):
         if counter%n == 0:
