@@ -71,65 +71,6 @@ rule split:
 		cd {params.wd}
 		touch {output.checkpoint}
 		"""
-
-rule genemark:
-	input:
-		fasta = rules.sort.output.assembly
-	params:
-		prefix = "{sample}",
-		genemark_dir = config["genemark"]["genemark_dir"],
-		gmes_petap_params = config["genemark"]["gmes_petap_params"],
-		wd = os.getcwd()
-	threads: config["threads"]["genemark"]
-	singularity:
-		config["containers"]["premaker"]
-	log:
-		stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
-		stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
-	output:
-		ok = "checkpoints/{sample}/genemark.status.ok",
-		model = "results/{sample}/GENEMARK/gmhmm.mod"
-	shell:
-		"""
-		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-		basedir=$(pwd)
-		export PATH="{params.wd}/{params.genemark_dir}:$PATH"
-                
-		if [[ ! -d results/{params.prefix}/GENEMARK ]]
-                then
-                        mkdir results/{params.prefix}/GENEMARK
-		else
-			if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
-			then
-				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
-				rm -rf results/{params.prefix}/GENEMARK
-				mkdir results/{params.prefix}/GENEMARK
-			fi
-                fi
-                cd results/{params.prefix}/GENEMARK
-		
-		# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
-		ln -sf $basedir/{params.genemark_dir}/gm_key .gm_key
-
-		if [ "{params.gmes_petap_params}" == "None" ]
-		then
-			gmes_petap.pl -ES -cores {threads} -sequence ../../../{input.fasta} 1> ../../../{log.stdout} 2> ../../../{log.stderr}
-		else
-			gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence ../../../{input.fasta} 1> ../../../{log.stdout} 2> ../../../{log.stderr}
-		fi
-
-		retVal=$?
-
-		if [ ! $retVal -eq 0 ]
-		then
-			echo "Genemark ended in an error"
-			exit $retVal
-		else
-			touch ../../../{output.ok}
-		fi
-		echo -e "\n$(date)\tFinished!\n"
-		
-		"""		
 		
 rule busco:
 	input:

@@ -1,7 +1,6 @@
 rule prepare_protein_evidence:
 	input:
 		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz")),
-		ok = rules.split.output.checkpoint
 	params:
 		prefix = "{sample}",
 		mem = "8000",
@@ -50,13 +49,73 @@ rule prepare_protein_evidence:
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
+rule genemark:
+	input:
+		fasta = rules.mask_repeats.output.hard
+#		fasta = rules.sort.output.assembly
+	params:
+		prefix = "{sample}",
+		genemark_dir = config["genemark"]["genemark_dir"],
+		gmes_petap_params = config["genemark"]["gmes_petap_params"],
+		wd = os.getcwd()
+	threads: config["threads"]["genemark"]
+	singularity:
+		config["containers"]["premaker"]
+	log:
+		stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
+		stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
+	output:
+		ok = "checkpoints/{sample}/genemark.status.ok",
+		model = "results/{sample}/GENEMARK/gmhmm.mod"
+	shell:
+		"""
+		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+		export PATH="{params.wd}/{params.genemark_dir}:$PATH"
+                
+		if [[ ! -d results/{params.prefix}/GENEMARK ]]
+                then
+                        mkdir results/{params.prefix}/GENEMARK
+		else
+			if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
+			then
+				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
+				rm -rf results/{params.prefix}/GENEMARK
+				mkdir results/{params.prefix}/GENEMARK
+			fi
+                fi
+                cd results/{params.prefix}/GENEMARK
+
+		# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
+		ln -sf {params.wd}/{params.genemark_dir}/gm_key .gm_key
+
+		if [ "{params.gmes_petap_params}" == "None" ]
+		then
+			gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+		else
+			gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+		fi
+
+		retVal=$?
+
+		if [ ! $retVal -eq 0 ]
+		then
+			echo "Genemark ended in an error"
+			exit $retVal
+		else
+			touch {params.wd}/{output.ok}
+		fi
+		echo -e "\n$(date)\tFinished!\n"
+		
+		"""		
+		
 rule initiate_MAKER_PASS1:
 	input:
 		ok = rules.split.output.checkpoint,
 		snap = rules.snap_pass1.output.hmm,
 		nr_evidence = rules.prepare_protein_evidence.output.nr_proteins,
-		busco_proteins = rules.busco.output,
+		busco_proteins = rules.busco.output.buscos,
 		repmod_lib = rules.repeatmodeler.output.fasta,
+		repmas_gff_denovo = rules.repeatmasker_denovo.output.gff,
 		repmas_gff = rules.repeatmasker.output.gff
 	params:
 		prefix = "{sample}",
@@ -98,7 +157,7 @@ rule initiate_MAKER_PASS1:
 		$nr_evi \
 		$basedir/{input.busco_proteins} \
 		$basedir/{input.repmod_lib} \
-		$basedir/{input.repmas_gff} \
+		$basedir/{input.repmas_gff},$basedir/{input.repmas_gff_denovo} \
 		"{params.transcripts[alt_ests]}" \
 		"{params.transcripts[ests]}" \
 		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -166,29 +225,29 @@ rule run_MAKER_PASS1:
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
-rule cleanup_MAKER_PASS1:
-	input:
-		rules.run_MAKER_PASS1.output
-	params:
-		dir = "{unit}",
-		prefix = "{sample}",
-		script = "bin/cleanup.sh"
-	singularity:
-		"docker://chrishah/premaker-plus:18"
-	output:
-		gzipped_results = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz",
-		ok = "checkpoints/{sample}/cleanup_MAKER_PASS1.{unit}.ok"
-	shell:
-		"""
-		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-		basedir=$(pwd)
-		
-		cd results/{params.prefix}/MAKER.PASS1/{params.dir}/
-		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
-		touch $basedir/{output.ok}
-		echo -e "\n$(date)\tFinished!\n"
-
-		"""	
+#rule cleanup_MAKER_PASS1:
+#	input:
+#		rules.run_MAKER_PASS1.output
+#	params:
+#		dir = "{unit}",
+#		prefix = "{sample}",
+#		script = "bin/cleanup.sh"
+#	singularity:
+#		"docker://chrishah/premaker-plus:18"
+#	output:
+#		gzipped_results = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz",
+#		ok = "checkpoints/{sample}/cleanup_MAKER_PASS1.{unit}.ok"
+#	shell:
+#		"""
+#		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+#		basedir=$(pwd)
+#		
+#		cd results/{params.prefix}/MAKER.PASS1/{params.dir}/
+#		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
+#		touch $basedir/{output.ok}
+#		echo -e "\n$(date)\tFinished!\n"
+#
+#		"""	
 
 rule merge_MAKER_PASS1:
 	input:
@@ -220,7 +279,7 @@ rule merge_MAKER_PASS1:
 rule AUGUSTUS_PASS2:
 	input:
 		busco_ok = rules.busco.output,
-		fasta = rules.repeatmasker.output.masked,
+		fasta = rules.mask_repeats.output.hard,
 		maker_proteins = rules.merge_MAKER_PASS1.output.proteins
 	params:
 		prefix = "{sample}",
@@ -465,6 +524,7 @@ rule run_MAKER_PASS2:
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
+		genemark_dir = config["genemark"]["genemark_dir"],
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
 	threads: config["threads"]["run_MAKER_PASS2"]
 	singularity:
@@ -492,7 +552,7 @@ rule run_MAKER_PASS2:
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
-		ln -fs $basedir/.gm_key .
+		ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
