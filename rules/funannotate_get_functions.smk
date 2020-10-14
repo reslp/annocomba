@@ -1,6 +1,7 @@
 rule iprscan:
 	input:
 		predict_ok = rules.predict.output,
+		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
 	params:
 		folder="{sample}",
 		pred_folder = "{contig_prefix}",
@@ -18,7 +19,7 @@ rule iprscan:
 		"""
 		mkdir -p {params.pred_folder}_preds/annotate_misc
 		#funannotate iprscan --iprscan_path /data/external/interproscan-5.33-72.0/interproscan.sh -i ../../results/{params.folder}/{params.pred_folder}_preds -m local -c 2 >& ../../{log}
-		{params.iprscan} -i results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/predict_results/{params.folder}.proteins.fa -o {output.xml} -f XML -goterms -pa >& {log}
+		{params.iprscan} -i {input.proteins} -o {output.xml} -f XML -goterms -pa >& {log}
 		touch {output.check}
 		"""
 rule remote:

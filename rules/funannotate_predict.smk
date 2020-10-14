@@ -5,7 +5,8 @@ rule predict:
 		maker_gff = rules.merge_MAKER_PASS2.output.all_gff,
 		genemark_ok = rules.genemark.output.ok
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_predict.{contig_prefix}.done"
+		check = "checkpoints/{sample}/FUNANNOTATE_predict.{contig_prefix}.done",
+		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
 	params:
 		folder = "{sample}",
 		pred_folder = "{contig_prefix}",
@@ -38,7 +39,7 @@ rule predict:
                 tar -cvf busco_proteins.tar busco_proteins && rm -r busco_proteins
                 tar -cvf EVM.tar EVM && rm -r EVM
 
-		touch ../../../../../{output}
+		touch ../../../../../{output.check}
 
 		""" 
 
