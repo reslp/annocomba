@@ -4,18 +4,17 @@ __default__:
    ntasks: 1
    J: default
    hint: nomultithread
-   mem: 8G
-   reservation: p71312_12
+   mem: 16G
    partition: mem_0096 
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
 clean:
    J: clean 
-   ntasks-per-node: 8
+   ntasks-per-node: 1
 sort:
    J: sort
-   ntasks-per-node: 8
+   ntasks-per-node: 1
 mask:
    J: mask
    hint: multithread
@@ -56,24 +55,38 @@ split:
    J: split
 busco:
    J: busco
+   hint: multithread
    mem: 20G
 cegma:
    J: cegma
+   hint: multithread
    mem: 20G
 repeatmodeler:
    J: repmod
+   hint: multithread
+   mem: 20G
+repeatmasker_denovo:
+   J: repmad
+   hint: multithread
    mem: 20G
 repeatmasker:
    J: repmas
+   hint: multithread
    mem: 20G
+mask_repeats:
+   J: masrep
+   mem: 4G
+   time: "05:00:00"
 genemark:
    J: genemark
+   hint: multithread
    mem: 20G
 snap_pass1:
    J: snap1
    mem: 4G
 prepare_protein_evidence:
    J: CDH
+   hint: multithread
 #   ntasks: 8
 #   ntasks-per-node: 8
    mem: 20G
@@ -84,6 +97,7 @@ initiate_MAKER_PASS1:
 #   ntasks-per-node: 2
 run_MAKER_PASS1:
    J: rMP1
+   hint: multithread
 #   ntasks: 20
 #   ntasks-per-node: 20
    mem: 10G
@@ -108,9 +122,10 @@ snap_pass2:
    time: "00:30:00"
 AUGUSTUS_PASS2:
    J: AUG2
+   hint: nomultithread
 #   ntasks: 2
 #   ntasks-per-node: 2
-   mem: 20G
+   mem: 10G
    time: "70:00:00"
 pick_augustus_training_set:
    J: PAM
@@ -120,6 +135,7 @@ initiate_MAKER_PASS2:
 #   ntasks-per-node: 2
 run_MAKER_PASS2:
    J: rMP2
+   hint: multithread
 #   ntasks: 20
 #   ntasks-per-node: 20
    mem: 10G
@@ -136,4 +152,7 @@ merge_MAKER_PASS2:
 #   ntasks-per-node: 2
    mem: 4G
    time: "01:00:00"
-
+all:
+   J: all
+   mem: 4G
+   time: "01:00:00"
