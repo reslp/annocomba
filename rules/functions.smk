@@ -19,16 +19,6 @@ def get_assembly_path(wildcards):
 # this is to get the path to the assembly from the CSV file
 	return samples.loc[wildcards.sample, ["fasta"]].to_list()
 
-def get_transcripts_path(wildcards, p="data/transcripts/*"):
-	#get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
-	dic = {'alt_ests': [], 'ests': []}
-	for f in glob.glob(p):
-		if f.split("/")[-1].startswith(wildcards.sample):
-			dic['ests'].append(os.path.abspath(f))
-		else:
-			dic['alt_ests'].append(os.path.abspath(f))
-	return dic
-
 
 def partition_by_length(fasta, max_length=n, min_length=min, pr=0, outdir="./"):
 #function that partitions the fasta file
