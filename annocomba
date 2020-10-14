@@ -122,7 +122,7 @@ if [[ $SETUP == "TRUE" ]]; then
 		exit 1
 	fi
 	MAK=""
-	if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_maker --cores 1 ; then
+	if snakemake --use-singularity --singularity-args "-B $(pwd) " -r setup_maker --cores 1 ; then
 		echo "MAKER for annocomba setup complete."
 		MAK="done"
 	else
@@ -132,7 +132,7 @@ if [[ $SETUP == "TRUE" ]]; then
 	EGG=""
 	if [[ ! -d "data/eggnog_database" ]]; then
                 mkdir data/eggnog_database
-		if snakemake --use-singularity --singularity-args "-B $(pwd) " -p -r setup_eggnog --cores 1  ; then
+		if snakemake --use-singularity --singularity-args "-B $(pwd) " -r setup_eggnog --cores 1  ; then
 			echo "EGGNOG for annocomba setup complete."
 			EGG="done"
 		else
