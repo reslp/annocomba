@@ -39,10 +39,12 @@ def get_transcripts_path(wildcards, p="data/transcripts/*"):
 	#get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
 	dic = {'alt_ests': [], 'ests': []}
 	for f in glob.glob(p):
-		if f.split("/")[-1].startswith(wildcards.sample):
-			dic['ests'].append(os.path.abspath(f))
-		else:
-			dic['alt_ests'].append(os.path.abspath(f))
+		if f.endswith(".fasta") or f.endswith(".fa") or f.endswith(".fas"):
+			print(f+"-> fasta")
+			if f.split("/")[-1].startswith(wildcards.sample):
+				dic['ests'].append(os.path.abspath(f))
+			else:
+				dic['alt_ests'].append(os.path.abspath(f))
 	return dic
 
 
@@ -61,4 +63,15 @@ for sample in sample_data.index.values.tolist():
 		unitdict[sample].append(str(i).zfill(4))
 	units = pd.DataFrame(dic).set_index(['sample','unit'], drop=False)
 
+#make dictionary combining the sample names and contig_prefixes
+dic = {'sample': [], 'contig_prefix': []}
+
+for sample in set(sample_data.index.values.tolist()):
+    contig_prefix = sample_data.loc[sample, ["contig_prefix"]].values[0]
+    dic["sample"].append(sample)
+    dic["contig_prefix"].append(contig_prefix)
+
+sample_prefix_units = pd.DataFrame(dic).set_index(['sample','contig_prefix'], drop=False)
+sample_prefix_units.index = sample_prefix_units.index.set_levels(
+    [i.astype(str) for i in sample_prefix_units.index.levels])  # enforce str in index
 

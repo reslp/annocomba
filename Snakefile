@@ -25,8 +25,9 @@ rule all:
 		expand("checkpoints/{name}/MAKER.PASS2.init.ok", name=sample_data.index.tolist()),
 		expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist()),
 #		expand("results/{unit.sample}/MAKER.PASS2/{unit.unit}/{unit.sample}.{unit.unit}.maker.output.tar.gz", unit=units.itertuples()),
-		expand("checkpoints/{name}/FUNANNOTATE_tarpredict.done", name=sample_data.index.tolist()),
-		expand("checkpoints/{name}/get_functions.done", name=sample_data.index.tolist()),
+		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
+		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
+		expand("checkpoints/{name.sample}/FUNANNOTATE_annotate.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
 		"checkpoints/FUNANNOTATE_compare.done"
 
 include: "rules/setup_maker.smk"

@@ -1,37 +1,38 @@
 rule iprscan:
 	input:
-		rules.predict.output
-
-	output:
-		"checkpoints/{sample}/iprscan.done"
+		predict_ok = rules.predict.output,
 	params:
 		folder="{sample}",
-		pred_folder=get_contig_prefix,
-		version=config["software"]["iprscan_version"]
+		pred_folder = "{contig_prefix}",
+		iprscan=config["iprscan"],
+		wd = os.getcwd()
 	singularity:
 		config["containers"]["funannotate"]
 	log:
-		"results/{sample}/logs/ipscan.log"
+		"results/{sample}/logs/ipscan.{contig_prefix}.log"
+	output:
+		check = "checkpoints/{sample}/iprscan.{contig_prefix}.done",
+		xml = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan.xml"
+	shadow: "shallow"
 	shell:
 		"""
-		cd results/{params.folder}/FUNANNOTATE
 		mkdir -p {params.pred_folder}_preds/annotate_misc
 		#funannotate iprscan --iprscan_path /data/external/interproscan-5.33-72.0/interproscan.sh -i ../../results/{params.folder}/{params.pred_folder}_preds -m local -c 2 >& ../../{log}
-		/data/external/interproscan-{params.version}/interproscan.sh -i ../../../results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/predict_results/{params.folder}.proteins.fa -o ../../../results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml -f XML -goterms -pa >& ../../../{log}
-		touch ../../../{output}
+		{params.iprscan} -i results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/predict_results/{params.folder}.proteins.fa -o {output.xml} -f XML -goterms -pa >& {log}
+		touch {output.check}
 		"""
 rule remote:
 	input:
 		rules.predict.output
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_remote.done"
+		"checkpoints/{sample}/FUNANNOTATE_remote.{contig_prefix}.done"
 	params:
 		folder="{sample}",
-		pred_folder=get_contig_prefix,
+		pred_folder = "{contig_prefix}",
 		methods = config["remote"]["methods"],
 		email = config["remote"]["email"]
 	log:
-		"results/{sample}/logs/remote.log"
+		"results/{sample}/logs/remote.{contig_prefix}.log"
 	singularity:
 		config["containers"]["funannotate"]
 	shell:
@@ -44,12 +45,12 @@ rule eggnog:
 	input:
 		rules.predict.output
 	output:
-		"checkpoints/{sample}/eggnog.done"
+		"checkpoints/{sample}/eggnog.{contig_prefix}.done"
 	params:
 		folder="{sample}",
-		pred_folder=get_contig_prefix
+		pred_folder = "{contig_prefix}",
 	log:
-		"results/{sample}/logs/eggnog.log"
+		"results/{sample}/logs/eggnog.{contig_prefix}.log"
 	singularity:
 		"docker://reslp/eggnog-mapper:1.0.3"
 	threads: config["eggnog"]["threads"]
@@ -66,7 +67,7 @@ rule get_functions:
 		rules.iprscan.output,
 		rules.remote.output
 	output:
-		"checkpoints/{sample}/get_functions.done"
+		"checkpoints/{sample}/get_functions.{contig_prefix}.done"
 	shell:
 		"""
 		touch {output}

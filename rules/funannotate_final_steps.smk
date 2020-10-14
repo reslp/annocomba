@@ -4,13 +4,13 @@ rule annotate:
 		rules.remote.output,
 		rules.eggnog.output
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_annotate.done"
+		"checkpoints/{sample}/FUNANNOTATE_annotate.{contig_prefix}.done"
 	params:
 		folder="{sample}",
-		pred_folder=get_contig_prefix,
+		pred_folder="{contig_prefix}",
 		buscodb=config["busco_set"]
 	log:
-		"results/{sample}/logs/FUNANNOTATE_annotate.log"
+		"results/{sample}/logs/FUNANNOTATE_annotate.{contig_prefix}.log"
 	singularity:
 		config["containers"]["funannotate"]
 	threads: config["annotate"]["threads"]
@@ -28,7 +28,8 @@ species_names, preddirs = glob_wildcards("results/{sample}/FUNANNOTATE/{preddir}
 if config["compare"]["phylogeny"] == "yes" or config["compare"]["histograms"] == "yes":
 	rule compare:
                 input:
-                        checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.done", sam=sample_data.index.tolist()),
+#                        checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
+                        checkpoint=expand("checkpoints/{species_name}/FUNANNOTATE_annotate.{preddir}.done", zip, species_name=species_names, preddir=preddirs),
                         folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs)
                 output:
                         checkpoint = "checkpoints/FUNANNOTATE_compare.done"
@@ -59,7 +60,8 @@ if config["compare"]["phylogeny"] == "yes" or config["compare"]["histograms"] ==
 else:
 	rule compare:
 		input:
-			checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.done", sam=sample_data.index.tolist()),
+#                        checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
+                        checkpoint=expand("checkpoints/{species_name}/FUNANNOTATE_annotate.{preddir}.done", zip, species_name=species_names, preddir=preddirs),
 			folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs) 
 		output:
 			checkpoint = "checkpoints/FUNANNOTATE_compare.done"

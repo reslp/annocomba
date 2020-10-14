@@ -1,14 +1,14 @@
 rule predict:
 	input:
-		assembly = rules.repeatmasker.output.masked,
+		assembly = rules.mask_repeats.output.hard,
 		maker_proteins = rules.merge_MAKER_PASS2.output.proteins,
 		maker_gff = rules.merge_MAKER_PASS2.output.all_gff,
 		genemark_ok = rules.genemark.output.ok
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_predict.done"
+		"checkpoints/{sample}/FUNANNOTATE_predict.{contig_prefix}.done"
 	params:
 		folder = "{sample}",
-		pred_folder = get_contig_prefix,
+		pred_folder = "{contig_prefix}",
 		sample_name = "{sample}",
 		organism = config["predict"]["organism"],
 		busco_seed_species = config["busco_species"],
@@ -19,7 +19,7 @@ rule predict:
 	singularity:
 		config["containers"]["funannotate"]
 	log:
-		"results/{sample}/logs/FUNANNOTATE_predict.log"
+		"results/{sample}/logs/FUNANNOTATE_predict.{contig_prefix}.log"
 	threads: config["predict"]["threads"] 
 	shell:
 		"""
@@ -46,9 +46,9 @@ rule tarpredict:
 	input:
 		{rules.predict.output}
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_tarpredict.done"
+		"checkpoints/{sample}/FUNANNOTATE_tarpredict.{contig_prefix}.done"
 	params:
-		pred_folder = get_contig_prefix,
+		pred_folder = "{contig_prefix}",
 		folder = "{sample}"
 	shell:
 		"""
