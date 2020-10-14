@@ -30,7 +30,7 @@ then
         sed -i "s?rmlib= ?rmlib=$repmod_lib ?" maker_opts.ctl
 fi
 #add repeatmasker gff if present
-if [ -f "$repmas_gff" ]
+if [ ! -z "$repmas_gff" ]
 then
 	echo -e "Repeatmasker gff provided: $repmas_gff"
 	sed -i "s?rm_gff= ?rm_gff=$repmas_gff ?" maker_opts.ctl
