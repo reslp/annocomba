@@ -27,28 +27,29 @@ species_names, preddirs = glob_wildcards("results/{sample}/FUNANNOTATE/{preddir}
 # therefore the folder has to be moved manually to the results folder.
 if config["compare"]["phylogeny"] == "yes" or config["compare"]["histograms"] == "yes":
 	rule compare:
-                input:
-#                        checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
-                        checkpoint=expand("checkpoints/{species_name}/FUNANNOTATE_annotate.{preddir}.done", zip, species_name=species_names, preddir=preddirs),
-                        folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs)
-                output:
-                        checkpoint = "checkpoints/FUNANNOTATE_compare.done"
-                params:
-                        samples = expand("results/{sam}", sam=sample_data["contig_prefix"].tolist()),
-                        num_orthos = config["compare"]["num_orthos"],
-                        ml_method = config["compare"]["ml_method"]
-                singularity:
-                        config["containers"]["funannotate"]
-                log:
-                        "results/FUNANNOTATE_compare.log"
-                threads: config["compare"]["threads"]
-                shell:
-                        """
-			if [ $(echo {input.folders} | wc -w) -gt 1 ]; then
-                        	funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
-                        	cp -r funannotate_compare results/
-                        	cp funannotate_compare.tar.gz results/
-                        	mv results/funannotate_compare results/FUNANNOTATE_COMPARE
+		input:
+#			checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
+#			checkpoint = expand("checkpoints/{species_name}/FUNANNOTATE_annotate.{preddir}.done", zip, species_name=species_names, preddir=preddirs),
+			checkpoint = expand("checkpoints/{name.sample}/FUNANNOTATE_annotate.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
+		output:
+			checkpoint = "checkpoints/FUNANNOTATE_compare.done"
+		params:
+#			folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs),
+			folders = expand("results/{name.sample}/FUNANNOTATE/{name.contig_prefix}_preds", name=sample_prefix_units.itertuples()),
+			num_orthos = config["compare"]["num_orthos"],
+			ml_method = config["compare"]["ml_method"]
+		singularity:
+			config["containers"]["funannotate"]
+		log:
+			"results/FUNANNOTATE_compare.log"
+		threads: config["compare"]["threads"]
+		shell:
+			"""
+			if [ $(echo "{input.checkpoint}" | wc -w) -gt 1 ]; then
+				funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {params.folders} >& {log}
+				cp -r funannotate_compare results/
+				cp funannotate_compare.tar.gz results/
+				mv results/funannotate_compare results/FUNANNOTATE_COMPARE
 				rm -rf funannotate_compare
 				rm funannotate_compare.tar.gz
 				touch {output.checkpoint}
@@ -56,17 +57,17 @@ if config["compare"]["phylogeny"] == "yes" or config["compare"]["histograms"] ==
 				echo "Not enough species to run funannotate compare" >& {log}
 				touch {output.checkpoint}
 			fi
-                        """	
+			"""	
 else:
 	rule compare:
 		input:
-#                        checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
-                        checkpoint=expand("checkpoints/{species_name}/FUNANNOTATE_annotate.{preddir}.done", zip, species_name=species_names, preddir=preddirs),
-			folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs) 
+#			checkpoint=expand("checkpoints/{sam}/FUNANNOTATE_annotate.{preddir}.done", zip, sam=sample_data.index.tolist(), preddir=preddirs),
+			checkpoint = expand("checkpoints/{name.sample}/FUNANNOTATE_annotate.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
 		output:
 			checkpoint = "checkpoints/FUNANNOTATE_compare.done"
 		params:
-			samples = expand("results/{sam}", sam=sample_data["contig_prefix"].tolist()),
+#			folders = expand("results/{species_name}/FUNANNOTATE/{preddir}_preds", zip, species_name=species_names, preddir=preddirs),
+			folders = expand("results/{name.sample}/FUNANNOTATE/{name.contig_prefix}_preds", name=sample_prefix_units.itertuples()),
 			num_orthos = config["compare"]["num_orthos"],
 			ml_method = config["compare"]["ml_method"]
 		singularity:
@@ -76,16 +77,16 @@ else:
 		threads: config["compare"]["threads"]
 		shell:
 			"""
-			if [ $(echo {input.folders} | wc -w) -gt 1 ]; then
-				funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {input.folders} >& {log}
+			if [ $(echo "{input.checkpoint}" | wc -w) -gt 1 ]; then
+				funannotate compare --cpus {threads} --num_orthos {params.num_orthos} --ml_method {params.ml_method} -i {params.folders} >& {log}
 				cp -r funannotate_compare results/
-                        	cp funannotate_compare.tar.gz results/
+				cp funannotate_compare.tar.gz results/
 				mv results/funannotate_compare results/FUNANNOTATE_COMPARE
-                        	rm -rf funannotate_compare
-                        	rm funannotate_compare.tar.gz
+				rm -rf funannotate_compare
+				rm funannotate_compare.tar.gz
 				touch {output.checkpoint}
 			else
 				echo "Not enough species to run funannotate compare" >& {log}
-                                touch {output.checkpoint}
-                        fi
+				touch {output.checkpoint}
+			fi
 			"""
