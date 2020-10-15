@@ -1,0 +1,159 @@
+__default__:
+   time: "72:00:00"
+   n: 1
+   ntasks: 1
+   J: default
+   hint: nomultithread
+   mem: 16G
+   partition: mem_0096 
+   qos: mem_0096
+   output: $(pwd)/log/slurm-%j.out
+   error: $(pwd)/log/slurm-%j.err
+clean:
+   J: clean 
+   ntasks-per-node: 1
+   mem: 32G
+sort:
+   J: sort
+   ntasks-per-node: 1
+mask:
+   J: mask
+   hint: multithread
+   ntasks-per-node: 96 
+predict:
+   J: pred
+   mem: 94G
+   hint: multithread
+   ntasks-per-node: 48
+tarpredict:
+   J: tarpred
+   ntasks-per-node: 1
+iprscan:
+   J: ipr
+   hint: multithread
+   mem: 92G
+   ntasks-per-node: 48
+remote:
+   J: rem
+eggnog:
+   J: egg
+   hint: multithread
+   mem: 92G
+   ntasks-per-node: 48
+get_functions:
+   J: getfun
+annotate:
+   J: anno
+   hint: multithread
+   mem: 94G
+   ntasks-per-node: 48
+compare:
+   J: compare
+   hint: multithread
+   mem: 94G
+   ntasks-per-node: 48
+split:
+   J: split
+busco:
+   J: busco
+   hint: multithread
+   mem: 20G
+cegma:
+   J: cegma
+   hint: multithread
+   mem: 20G
+repeatmodeler:
+   J: repmod
+   hint: multithread
+   mem: 20G
+repeatmasker_denovo:
+   J: repmad
+   hint: multithread
+   mem: 20G
+repeatmasker:
+   J: repmas
+   hint: multithread
+   mem: 20G
+mask_repeats:
+   J: masrep
+   mem: 4G
+   time: "05:00:00"
+genemark:
+   J: genemark
+   hint: multithread
+   mem: 20G
+snap_pass1:
+   J: snap1
+   mem: 4G
+prepare_protein_evidence:
+   J: CDH
+   hint: multithread
+#   ntasks: 8
+#   ntasks-per-node: 8
+   mem: 20G
+   time: "01:00:00"
+initiate_MAKER_PASS1:
+   J: iMP1
+#   ntasks: 2
+#   ntasks-per-node: 2
+run_MAKER_PASS1:
+   J: rMP1
+   hint: multithread
+#   ntasks: 20
+#   ntasks-per-node: 20
+   mem: 10G
+   time: "70:00:00"
+cleanup_MAKER_PASS1:
+   J: cMP1
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+   time: "70:00:00"
+merge_MAKER_PASS1:
+   J: mMP1
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+   time: "01:00:00"
+snap_pass2:
+   J: SNA2
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+   time: "00:30:00"
+AUGUSTUS_PASS2:
+   J: AUG2
+   hint: nomultithread
+#   ntasks: 2
+#   ntasks-per-node: 2
+   mem: 10G
+   time: "70:00:00"
+pick_augustus_training_set:
+   J: PAM
+initiate_MAKER_PASS2:
+   J: iMP2
+#   ntasks: 2
+#   ntasks-per-node: 2
+run_MAKER_PASS2:
+   J: rMP2
+   hint: multithread
+#   ntasks: 20
+#   ntasks-per-node: 20
+   mem: 10G
+   time: "70:00:00"
+cleanup_MAKER_PASS2:
+   J: cMP2
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+   time: "70:00:00"
+merge_MAKER_PASS2:
+   J: mMP2
+#   ntasks: 2
+#   ntasks-per-node: 2
+   mem: 4G
+   time: "01:00:00"
+all:
+   J: all
+   mem: 4G
+   time: "01:00:00"

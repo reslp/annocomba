@@ -29,6 +29,8 @@ test.txt
 .annocomba_setup.done
 bin/maker
 bin/RepeatMasker
+bin/Genemark
+.mountpoints
 data/config
 data/funannotate_database/
 data/eggnog_database/
