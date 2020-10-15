@@ -17,13 +17,8 @@ if config["clean"]["run"]:
         		config["containers"]["funannotate"]
         	shell:
                         """
-                        if [[ ! -d results/{params.folder} ]]
-                        then
-                                mkdir results/{params.folder}
-                        fi
-                        cd results/{params.folder}
-                        funannotate clean -i {input.assembly} -o ../../{output.assembly} --minlen {params.minlen}  &> ../../{log}
-                        cd {params.wd}
+        		cd results/{params.folder}
+                        funannotate clean -i {input.assembly} -o {params.wd}/{output.assembly} --minlen {params.minlen} &> {params.wd}/{log}
         		touch {output.ok}
         		"""
 
@@ -45,9 +40,8 @@ if config["clean"]["run"]:
         	shell:
         		"""
         		cd results/{params.folder}
-        		funannotate sort -i ../../{input.assembly} -o ../../{output.assembly} -b {params.contig_prefix} &> ../../{log}
-        		cd {params.wd}
-        		touch {output.ok}
+        		funannotate sort -i {input.assembly} -o {params.wd}/{output.assembly} -b {params.contig_prefix} &> {params.wd}/{log}
+        		touch {params.wd}/{output.ok}
         		"""
 else:
         rule sort:
