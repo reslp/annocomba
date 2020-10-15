@@ -1,3 +1,5 @@
+from os import path
+
 rule prepare_protein_evidence:
 	input:
 		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz")),
@@ -48,66 +50,76 @@ rule prepare_protein_evidence:
 		fi
 		echo -e "\n$(date)\tFinished!\n"
 		"""
-
-rule genemark:
-	input:
-		fasta = rules.mask_repeats.output.hard
-#		fasta = rules.sort.output.assembly
-	params:
-		prefix = "{sample}",
-		genemark_dir = config["genemark"]["genemark_dir"],
-		gmes_petap_params = config["genemark"]["gmes_petap_params"],
-		wd = os.getcwd()
-	threads: config["threads"]["genemark"]
-	singularity:
-		config["containers"]["premaker"]
-	log:
-		stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
-		stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
-	output:
-		ok = "checkpoints/{sample}/genemark.status.ok",
-		model = "results/{sample}/GENEMARK/gmhmm.mod"
-	shell:
-		"""
-		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-		export PATH="{params.wd}/{params.genemark_dir}:$PATH"
+if path.exists("bin/Genemark/gm_key"):
+	rule genemark:
+		input:
+			fasta = rules.mask_repeats.output.hard
+#			fasta = rules.sort.output.assembly
+		params:
+			prefix = "{sample}",
+			genemark_dir = "bin/Genemark",
+			gmes_petap_params = config["genemark"]["gmes_petap_params"],
+			wd = os.getcwd()
+		threads: config["threads"]["genemark"]
+		singularity:
+			config["containers"]["premaker"]
+		log:
+			stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
+			stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
+		output:
+			check = "checkpoints/{sample}/genemark.status.ok",
+		shell:
+			"""
+			echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+			export PATH="{params.wd}/{params.genemark_dir}:$PATH"
                 
-		if [[ ! -d results/{params.prefix}/GENEMARK ]]
-                then
-                        mkdir results/{params.prefix}/GENEMARK
-		else
-			if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
+			if [[ ! -d results/{params.prefix}/GENEMARK ]]
 			then
-				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
-				rm -rf results/{params.prefix}/GENEMARK
 				mkdir results/{params.prefix}/GENEMARK
+			else
+				if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
+				then
+				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
+					rm -rf results/{params.prefix}/GENEMARK
+					mkdir results/{params.prefix}/GENEMARK
+				fi
 			fi
-                fi
-                cd results/{params.prefix}/GENEMARK
+			cd results/{params.prefix}/GENEMARK
 
-		# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
-		ln -sf {params.wd}/{params.genemark_dir}/gm_key .gm_key
+			# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
+			ln -sf {params.wd}/{params.genemark_dir}/gm_key .gm_key
 
-		if [ "{params.gmes_petap_params}" == "None" ]
-		then
-			gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
-		else
-			gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
-		fi
+			if [ "{params.gmes_petap_params}" == "None" ]
+			then
+				gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+			else
+				gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+			fi
 
-		retVal=$?
+			retVal=$?
 
-		if [ ! $retVal -eq 0 ]
-		then
-			echo "Genemark ended in an error"
-			exit $retVal
-		else
-			touch {params.wd}/{output.ok}
-		fi
-		echo -e "\n$(date)\tFinished!\n"
+			if [ ! $retVal -eq 0 ]
+			then
+				echo "Genemark ended in an error"
+				exit $retVal
+			else
+				touch {params.wd}/{output.check}
+			fi
+			echo -e "\n$(date)\tFinished!\n"
 		
-		"""		
-		
+			"""		
+else:
+	rule genemark:
+		log:
+			stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
+			stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
+		output:
+			check = "checkpoints/{sample}/genemark.status.skipped",
+		shell:
+			"""
+			touch {output.check}
+			"""
+
 rule initiate_MAKER_PASS1:
 	input:
 		ok = rules.split.output.checkpoint,
@@ -447,7 +459,7 @@ rule initiate_MAKER_PASS2:
 	input:
 		snaphmm = rules.snap_pass2.output.snap_hmm,
 		MP1_ok = rules.merge_MAKER_PASS1.output,
-		gmhmm = rules.genemark.output.model
+		genemark = rules.genemark.output.check
 	params:
 		prefix = "{sample}",
 		script = "bin/prepare_maker_opts_PASS2.sh",
@@ -491,7 +503,7 @@ rule initiate_MAKER_PASS2:
 		##### Modify maker_opts.ctl file
 		bash $basedir/{params.script} \
 		$basedir/{input.snaphmm} \
-		$basedir/{input.gmhmm} \
+		$(if [ -s "$basedir/results/{params.prefix}/GENEMARK/gmhmm.mod" ]; then echo "$basedir/results/{params.prefix}/GENEMARK/gmhmm.mod"; else echo "none"; fi) \
 		$aed.{params.prefix} \
 		$basedir/{params.params} \
 		$basedir/{params.pred_gff} \
@@ -524,7 +536,7 @@ rule run_MAKER_PASS2:
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
-		genemark_dir = config["genemark"]["genemark_dir"],
+		genemark_dir = "bin/Genemark",
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
 	threads: config["threads"]["run_MAKER_PASS2"]
 	singularity:
@@ -552,7 +564,7 @@ rule run_MAKER_PASS2:
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
-		ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key
+		if [ -s "$basedir/{params.genemark_dir}" ]; ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key; fi
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}

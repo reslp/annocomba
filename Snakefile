@@ -13,7 +13,7 @@ rule all:
 #		expand("results/{name}/{name}_cleaned.fas", name=sample_data.index.tolist()),
 		expand("results/{name}/{name}_sorted.fas", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/split.ok", name= sample_data.index.tolist()),
-		expand("checkpoints/{name}/genemark.status.ok", name=sample_data.index.tolist()),
+#		expand("checkpoints/{name}/genemark.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/busco.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/cegma.status.ok", name=sample_data.index.tolist()),
 		expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),

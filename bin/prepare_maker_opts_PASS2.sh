@@ -40,6 +40,8 @@ if [ -s "$gmhmm" ]
 then
 	echo -e "Genemark model provided: $gmhmm"
 	sed -i "s?^gmhmm= ?gmhmm=$gmhmm ?" maker_opts.ctl
+else
+	echo -e "Genemark will not be used"
 fi
 if [ $augustus_species ] && [ -d "$params" ]
 then
