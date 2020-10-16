@@ -7,7 +7,7 @@ if config["clean"]["run"]:
                         assembly ="results/{sample}/{sample}_cleaned.fas",
 		        ok = "checkpoints/{sample}/clean.ok"
                 log:
-                        "log/{sample}_clean.log"
+                        "results/{sample}/logs/clean.{sample}.log"
                 params:
                         folder = "{sample}",
                         minlen = config["clean"]["minlen"],
@@ -17,8 +17,7 @@ if config["clean"]["run"]:
         		config["containers"]["funannotate"]
         	shell:
                         """
-        		cd results/{params.folder}
-                        funannotate clean -i {input.assembly} -o {params.wd}/{output.assembly} --minlen {params.minlen} &> {params.wd}/{log}
+                        funannotate clean -i {input.assembly} -o {output.assembly} --minlen {params.minlen} &> {log}
         		touch {output.ok}
         		"""
 
@@ -29,7 +28,7 @@ if config["clean"]["run"]:
         		assembly = "results/{sample}/{sample}_sorted.fas",
         		ok = "checkpoints/{sample}/sort.ok"
         	log:
-        		"log/{sample}_sort.log"
+        		"results/{sample}/logs/sort.{sample}.log"
         	params:
         		folder = "{sample}",
         		contig_prefix = get_contig_prefix,
@@ -39,19 +38,19 @@ if config["clean"]["run"]:
         		config["containers"]["funannotate"]
         	shell:
         		"""
-        		cd results/{params.folder}
-        		funannotate sort -i {input.assembly} -o {params.wd}/{output.assembly} -b {params.contig_prefix} &> {params.wd}/{log}
-        		touch {params.wd}/{output.ok}
+        		funannotate sort -i {input.assembly} -o {output.assembly} -b {params.contig_prefix} &> {log}
+        		touch {output.ok}
         		"""
 else:
         rule sort:
         	input:
         		assembly = get_assembly_path
         	output:
-        		assembly = "results/{sample}/{sample}_sorted.fas",
+        		full_assembly = "results/{sample}/{sample}_sorted.all.fas",
+			assembly = "results/{sample}/{sample}_sorted.fas",
         		ok = "checkpoints/{sample}/sort.ok"
         	log:
-        		"log/{sample}_sort.log"
+        		"results/{sample}/logs/clean.{sample}.log"
         	params:
         		folder = "{sample}",
         		contig_prefix = get_contig_prefix,
@@ -63,8 +62,7 @@ else:
         		config["containers"]["funannotate"]
         	shell:
         		"""
-        		cd results/{params.folder}
-                        funannotate sort -i {input.assembly} -o {params.folder}_sorted.all.fasta -b {params.contig_prefix} &> {params.wd}/{log}
-        		{params.wd}/{params.script} {params.folder}_sorted.all.fasta {params.minlen} > {params.wd}/{output.assembly}
-        		touch {params.wd}/{output.ok}
+                        funannotate sort -i {input.assembly} -o {output.full_assembly} -b {params.contig_prefix} &> {log}
+        		{params.script} {output.full_assembly} {params.minlen} > {output.assembly}
+        		touch {output.ok}
         		"""
