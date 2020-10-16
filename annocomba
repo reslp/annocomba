@@ -49,7 +49,7 @@ while getopts ":v:t:c:s:m:i:-:" option;
 					reset) RESET="TRUE" ;;
 					remove=maker) REMOVE="maker" ;;	
 					remove=repeatmasker) REMOVE="repeatmasker" ;;
-					remove=repeatmodeler) REMOVE="repeatmodeler" ;;							      dry) DRY="-n";;
+					remove=repeatmodeler) REMOVE="repeatmodeler" ;;
 					dry) DRY="-n";;
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
