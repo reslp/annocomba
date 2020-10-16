@@ -18,6 +18,7 @@ usage() {
 	echo "  --setup This flag wil setup all programs and settings for running the pipeline."
 	echo "  --remove=<maker|repeatmasker|repeatmodeler> Removes all results logs and checkpoints of specified analysis."
 	echo "  --reset Completely resets pipeline (except setup). Deletes all results, logs and checkpoints."
+	echo "  --dry Invokes a dry-run of the pipeline, only listing the jobs which will be run. Corresponds to snakemake -n"
 	echo
         1>&2; exit 1; }
 
@@ -31,6 +32,7 @@ SETUP=""
 RUNMODE="all"
 RESET="FALSE"
 REMOVE=""
+DRY=""
 while getopts ":v:t:c:s:m:i:-:" option;
         do
                 case "${option}"
@@ -47,7 +49,8 @@ while getopts ":v:t:c:s:m:i:-:" option;
 					reset) RESET="TRUE" ;;
 					remove=maker) REMOVE="maker" ;;	
 					remove=repeatmasker) REMOVE="repeatmasker" ;;
-					remove=repeatmodeler) REMOVE="repeatmodeler" ;;			
+					remove=repeatmodeler) REMOVE="repeatmodeler" ;;							      dry) DRY="-n";;
+					dry) DRY="-n";;
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
@@ -208,12 +211,12 @@ if [[ $RUNMODE == *"all"* ]]; then
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
           mkdir -p .conda_pkg_tmp
-          snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS
+          snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS $DRY
   	unset CONDA_PKGS_DIRS
   elif [[ $CLUSTER == "sge" ]]; then
-  	snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS
+  	snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS $DRY
   elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" -pr --notemp $SM_ARGS
+    snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" -pr --notemp $SM_ARGS $DRY
   else
           echo "Submission system not recognized"
           exit 1
