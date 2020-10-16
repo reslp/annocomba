@@ -6,6 +6,7 @@ if config["clean"]["run"]:
                 output:
                         assembly ="results/{sample}/{sample}_cleaned.fas",
 		        ok = "checkpoints/{sample}/clean.ok"
+                shadow: "shallow"
                 log:
                         "results/{sample}/logs/clean.{sample}.log"
                 params:
