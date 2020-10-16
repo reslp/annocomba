@@ -30,9 +30,6 @@ rule all:
 		expand("checkpoints/{name.sample}/FUNANNOTATE_annotate.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
 		"checkpoints/FUNANNOTATE_compare.done"
 
-include: "rules/setup_maker.smk"
-include: "rules/setup_funannotate.smk"
-include: "rules/setup_eggnog.smk"
 include: "rules/funannotate_sort_mask.smk"
 include: "rules/maker_part_one.smk"
 include: "rules/repeats.smk"
