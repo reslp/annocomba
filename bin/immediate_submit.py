@@ -33,14 +33,26 @@ job_properties = read_job_properties(jobscript)
 print(job_properties, file=sys.stderr)
 print(job_properties["wildcards"], file=sys.stderr)
 
+sample = ""
+#find the sample name from the Snakemake rule properties (this assumes that in the Snakefile there exists a wildcard 'sample')
+if "sample" in job_properties["wildcards"]:
+        sample = job_properties["wildcards"]["sample"]
+
+#add a unit to the sample name (assumes that there is a wildcard 'unit', in our snakefile this is the number of the partitions)
+if "unit" in job_properties["wildcards"]:
+	sample = sample+"-"+job_properties["wildcards"]["unit"]
+
+#add a aed to the sample name (assumes that there is a wildcard 'aed', in our snakefile this is relevant for the Augustus runs)
+if "aed" in job_properties["wildcards"]:
+	sample = sample+"-"+job_properties["wildcards"]["aed"]
 
 cmdline=[]
 # create list with command line arguments
 if subs == "slurm":
 	cmdline = ["sbatch"]
 	if "sample" in job_properties["wildcards"]:
-                job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["sample"]
-                prefix = job_properties["wildcards"]["sample"] + "-" + job_properties["rule"] + "-slurm"
+                job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+sample
+                prefix = sample + "-" + job_properties["rule"] + "-slurm"
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
 	
@@ -61,7 +73,7 @@ if subs == "slurm":
 		#print(dependencies, file=sys.stderr)
 elif subs == "sge":
 	if "sample" in job_properties["wildcards"]:
-		name = job_properties["wildcards"]["sample"] + "_" + job_properties["cluster"]["N"] 
+		name = sample + "_" + job_properties["cluster"]["N"] 
 	else:
 		name = job_properties["cluster"]["N"]
 	job_properties["cluster"]["N"] = name
