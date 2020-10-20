@@ -73,7 +73,7 @@ if subs == "slurm":
 		#print(dependencies, file=sys.stderr)
 elif subs == "sge":
 	if "sample" in job_properties["wildcards"]:
-		name = sample + "_" + job_properties["cluster"]["N"] 
+		name = job_properties["cluster"]["N"] + "_" + sample 
 	else:
 		name = job_properties["cluster"]["N"]
 	job_properties["cluster"]["N"] = name
@@ -82,7 +82,9 @@ elif subs == "sge":
 	job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix).replace("%j",name)
 	cmdline = ["qsub"]
 	
-	# TODO: add correct thread handling for SGE clusters
+	#determine threads from the Snakemake profile, i.e. as determined in the Snakefile and the main config file respectively
+	job_properties["cluster"]["ntasks"] = job_properties["threads"]
+	
 	sge_args = "-cwd -V -q {queue} -l h_vmem={mem} -pe {pe} {ntasks} -o {output} -e {error} -N {N}".format(**job_properties["cluster"])	
 	cmdline.append(sge_args)
 
