@@ -8,6 +8,8 @@ rule annotate:
 	params:
 		folder="{sample}",
 		pred_folder="{contig_prefix}",
+		sbt = config["genbank_template"],
+		wd = os.getcwd(),
 		buscodb=config["busco_set"]
 	log:
 		"results/{sample}/logs/FUNANNOTATE_annotate.{contig_prefix}.log"
@@ -17,7 +19,7 @@ rule annotate:
 	shell:
 		"""
 		cd results/{params.folder}/FUNANNOTATE
-		funannotate annotate -i {params.pred_folder}_preds --sbt ../../../data/genbank_template.txt --eggnog {params.pred_folder}_preds/eggnog_results.emapper.annotations --busco_db {params.buscodb} --cpus {threads} >& ../../../{log}
+		funannotate annotate -i {params.pred_folder}_preds --sbt {params.wd}/{params.sbt} --eggnog {params.pred_folder}_preds/eggnog_results.emapper.annotations --busco_db {params.buscodb} --cpus {threads} >& ../../../{log}
 		#funannotate annotate -i {params.pred_folder}_preds --sbt ../../data/genbank_template.txt --cpus {threads} >& ../../{log}
 		touch ../../../{output}
 		"""

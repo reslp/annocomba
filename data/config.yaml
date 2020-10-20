@@ -5,6 +5,7 @@ maker_tarball: data/external/maker-2.31.10.tgz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
 #path to interproscan.sh script
 iprscan: /binfl/lv71312/reslp/annocomba/data/external/interproscan-5.39-77.0/interproscan.sh
+genbank_template: data/genbank_template.txt
 funannotate_databases: all
 # The BUSCO set is used in funannotate predict and annotate. It will be downloaded during annocomba --setup
 busco_set: "arthropoda"
