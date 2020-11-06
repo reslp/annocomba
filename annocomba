@@ -223,7 +223,19 @@ if [[ $RUNMODE == *"all"* ]]; then
   fi
 elif [[ $RUNMODE == *"maker"* ]]; then
   echo "Runmode set to: maker. Pipeline will run MAKER."
-  exit 1
+  if [[ $CLUSTER == "slurm" ]]; then
+          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
+          mkdir -p .conda_pkg_tmp
+          snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS $DRY -r maker_all
+        unset CONDA_PKGS_DIRS
+  elif [[ $CLUSTER == "sge" ]]; then
+        snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" --jobs 1001 --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit -pr --notemp --latency-wait 600 $SM_ARGS $DRY -r maker_all
+  elif [[ $CLUSTER == "serial" ]]; then
+    snakemake --use-singularity --singularity-args "-B $(pwd)/bin/RepeatMasker:/usr/local/RepeatMasker -B $(pwd)/data/eggnog_database:/data/eggnogdb -B $(pwd)/data/funannotate_database:/data/database $mountpoints $SI_ARGS" -pr --notemp $SM_ARGS $DRY -r maker_all
+  else
+          echo "Submission system not recognized"
+          exit 1
+  fi 
 elif [[ $RUNMODE == *"funannotate"* ]]; then
   echo "Runmode set to: funannotate. Pipeline will run funannotate."
   exit 1

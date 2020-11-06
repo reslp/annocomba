@@ -30,6 +30,22 @@ rule all:
 		expand("checkpoints/{name.sample}/FUNANNOTATE_annotate.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),
 		"checkpoints/FUNANNOTATE_compare.done"
 
+rule maker_all:
+	input:
+		expand("results/{name}/{name}_sorted.fas", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/split.ok", name= sample_data.index.tolist()),
+		expand("checkpoints/{name}/busco.status.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/cegma.status.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/repeatmodeler.status.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/repeatmasker.denovo.status.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/repeatmasker.full.status.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/MAKER_PASS1_init.ok", name=sample_data.index.tolist()),
+		expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=sample_data.index.tolist()),
+                expand("checkpoints/{name}/MAKER.PASS2.init.ok", name=sample_data.index.tolist()),
+                expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=sample_data.index.tolist())
+
+
+
 include: "rules/funannotate_sort_mask.smk"
 include: "rules/maker_part_one.smk"
 include: "rules/repeats.smk"
