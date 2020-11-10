@@ -80,7 +80,8 @@ rule busco:
 		busco_path = "data/funannotate_database",
 		busco_set = config["busco_set"],
 		augustus_species = config["busco_species"],
-		wd = os.getcwd()
+		wd = os.getcwd(),
+		busco_tblastn_single_core = config["busco_tblastn_single_core"]
 	threads: config["threads"]["busco"]
 	singularity:
 		"docker://chrishah/busco-docker:v3.1.0"
@@ -108,10 +109,17 @@ rule busco:
 		cp -rf /usr/share/augustus/config tmp/config
 		AUGUSTUS_CONFIG_PATH=$(pwd)/tmp/config
 
+		#check if tblastn single core flag is set:
+		if [[ "{params.busco_tblastn_single_core}" == "yes" ]]; then
+			SCF="--blast_single_core"
+		else
+			SCF=""
+		fi
+
 		#run BUSCO
 		run_BUSCO.py \
 		--in ../../../{input.fasta} --out {params.prefix} -l ../../../{params.busco_path}/{params.busco_set} --mode genome -c {threads} -f \
-		-sp {params.augustus_species} --long --augustus_parameters='--progress=true' 1> ../../../{log.stdout} 2> ../../../{log.stderr}
+		-sp {params.augustus_species} --long --augustus_parameters='--progress=true' $SCF 1> ../../../{log.stdout} 2> ../../../{log.stderr}
 
 		#collect predicted BUSCOs
 		cat run_{params.prefix}/single_copy_busco_sequences/*.faa | sed 's/:.*//' > run_{params.prefix}/single_copy_busco_sequences/{params.prefix}.BUSCOs.fasta
