@@ -367,6 +367,7 @@ rule AUGUSTUS_PASS2:
                         # handled better.
                         touch $basedir/{output.ok}
 		else
+			rm -rf tmp.{params.aed}
 			touch $basedir/{output.ok}
 		fi
 		echo -e "\n$(date)\tFinished!\n"
@@ -564,7 +565,9 @@ rule run_MAKER_PASS2:
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 		
 		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
-		if [ -s "$basedir/{params.genemark_dir}" ]; ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key; fi
+		if [ -s "$basedir/{params.genemark_dir}" ]; then 
+			ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key;
+		fi
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
