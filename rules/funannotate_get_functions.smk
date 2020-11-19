@@ -14,6 +14,7 @@ rule iprscan:
 	output:
 		check = "checkpoints/{sample}/iprscan.{contig_prefix}.done",
 		xml = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan.xml"
+	threads: config["threads"]["interproscan"]
 	shadow: "shallow"
 	shell:
 		"""
@@ -48,8 +49,9 @@ rule eggnog:
 	output:
 		"checkpoints/{sample}/eggnog.{contig_prefix}.done"
 	params:
-		folder="{sample}",
+		sample="{sample}",
 		pred_folder = "{contig_prefix}",
+		wd = os.getcwd()
 	log:
 		"results/{sample}/logs/eggnog.{contig_prefix}.log"
 	singularity:
@@ -57,8 +59,8 @@ rule eggnog:
 	threads: config["eggnog"]["threads"]
 	shell:
 		"""
-		cd results/{params.folder}/FUNANNOTATE
-		emapper.py  -i {params.pred_folder}_preds/predict_results/{params.folder}.proteins.fa --output {params.pred_folder}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond >& ../../../{log}
+		cd results/{params.sample}/FUNANNOTATE
+		emapper.py  -i {params.pred_folder}_preds/predict_results/{params.sample}.proteins.fa --output {params.pred_folder}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond >& ../../../{log}
 		touch ../../../{output}
 		"""
 

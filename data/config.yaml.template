@@ -13,6 +13,7 @@ busco_species: "fly"
 busco_tblastn_single_core: "no"
 # This database can be huge: NOG contains approx 2mio files.
 eggnog_database: "NOG"
+# the eggnog database is expected to be in data/eggnogdb
 
 # List of used containers:
 containers:
@@ -78,4 +79,4 @@ threads:
         run_MAKER_PASS1: 8
         AUGUSTUS_PASS2: 1
         run_MAKER_PASS2: 8
-
+	interproscan: 12
