@@ -23,6 +23,7 @@ containers:
         premaker: docker://chrishah/premaker-plus:18
         busco: docker://chrishah/busco-docker:v3.1.0
         cegma: docker://chrishah/cegma:2.5
+	interproscan: docker://reslp/interproscan-wrapper:5.39-77.0
 
 # this is to specify external software in data/external
 #software:
@@ -55,7 +56,7 @@ predict:
         maker_weight: 2
 remote:
         methods: "all"
-        email: "philipp.resl@uni-graz.at"
+        email: "your_email@adress.com"
 eggnog:
         threads: 48
 annotate:

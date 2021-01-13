@@ -8,7 +8,7 @@ rule iprscan:
 		iprscan=config["iprscan"],
 		wd = os.getcwd()
 	singularity:
-		config["containers"]["funannotate"]
+		config["containers"]["interproscan"]
 	log:
 		"results/{sample}/logs/ipscan.{contig_prefix}.log"
 	output:
@@ -20,7 +20,7 @@ rule iprscan:
 		"""
 		mkdir -p {params.pred_folder}_preds/annotate_misc
 		#funannotate iprscan --iprscan_path /data/external/interproscan-5.33-72.0/interproscan.sh -i ../../results/{params.folder}/{params.pred_folder}_preds -m local -c 2 >& ../../{log}
-		{params.iprscan} -i {input.proteins} -o {output.xml} -f XML -goterms -pa >& {log}
+		{params.iprscan} -cpu {threads} -i {input.proteins} -o {output.xml} -f XML -goterms -pa >& {log}
 		touch {output.check}
 		"""
 rule remote:
