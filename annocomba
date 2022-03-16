@@ -33,7 +33,7 @@ RUNMODE="all"
 RESET="FALSE"
 REMOVE=""
 DRY=""
-EGGNOGDB="data/eggnogdb"
+export EGGNOGDB="data/eggnogdb"
 while getopts ":v:t:c:s:m:i:-:" option;
         do
                 case "${option}"
@@ -136,7 +136,6 @@ if [[ $SETUP == "TRUE" ]]; then
 	EGG=""
 	if [[ ! -d $EGGNOGDB ]]; then
                 mkdir $EGGNOGDB
-		export $EGGNOGDB	
 		if snakemake -s setup.Snakefile --use-singularity --singularity-args "-B $(pwd) " -r setup_eggnog --cores 1  ; then
 			echo "EGGNOG for annocomba setup complete."
 			EGG="done"
@@ -167,6 +166,22 @@ if [[ $SETUP == "TRUE" ]]; then
 		fi
 	else
 		echo "Warning: Genemark not found"
+	fi
+
+	if [ -d "bin/SignalP" ]
+	then
+		echo "SignalP seems to be set up ok - kudos!"
+	elif [ -d "$(grep "signalp_dir" data/config.yaml | awk '{print $2}')" ]
+	then
+		signalp_dir=$(grep "signalp_dir" data/config.yaml | awk '{print $2}')
+		echo -ne "Setting up SignalP at: '$(pwd)/bin/SignalP' .. "
+		if cp -pfr $signalp_dir bin/SignalP; then echo "ok"; echo "-B $(pwd)/bin/SignalP:/usr/local/SignalP" >> .mountpoints; else echo "something went wrong"; fi
+		#find the first occurance
+		line=$(grep -n "ENV{SIGNALP}" bin/SignalP/signalp | cut -d ":" -f 1  | head -n 1)
+		sed -i "$line s?ENV{SIGNALP}.*?ENV{SIGNALP} = '$(pwd)/bin/SignalP'?" bin/SignalP/signalp
+		sed -i "s?^my \$outputDir.*?my \$outputDir = '/tmp'?" bin/SignalP/signalp
+	else
+		echo "Warning: SignalP not found"
 	fi
 
 	if [[ $FUN == "done" && $MAK == "done" && $EGG == "done" ]]; then
