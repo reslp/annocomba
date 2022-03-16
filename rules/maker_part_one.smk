@@ -63,9 +63,10 @@ rule split:
 		fastas = "results/{sample}/GENOME_PARTITIONS/"
 	shell:
 		"""
-		if [[ ! -d {params.fastas} ]]; then
-			mkdir {params.fastas}
+		if [[ -d {params.fastas} ]]; then
+			rm -rf {params.fastas}
 		fi
+		mkdir {params.fastas}
 		cd {params.fastas}
 		{params.wd}/bin/split_fasta.py {params.wd}/{input} {params.n_batches}
 		cd {params.wd}
@@ -84,7 +85,7 @@ rule busco:
 		busco_tblastn_single_core = config["busco_tblastn_single_core"]
 	threads: config["threads"]["busco"]
 	singularity:
-		"docker://chrishah/busco-docker:v3.1.0"
+		config["containers"]["busco"]
 	log:
 		stdout = "results/{sample}/logs/BUSCO.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/BUSCO.{sample}.stderr.txt"
@@ -106,7 +107,7 @@ rule busco:
 			mkdir tmp
 		fi
 
-		cp -rf /usr/share/augustus/config tmp/config
+		cp -rf /opt/conda/config tmp/config
 		AUGUSTUS_CONFIG_PATH=$(pwd)/tmp/config
 
 		#check if tblastn single core flag is set:
