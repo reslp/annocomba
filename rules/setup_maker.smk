@@ -5,7 +5,7 @@ rule setup_maker:
 	params:
 		repbase = config["RepbaseRepeatMaskerEdition"]
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	output: 
 		bin = directory("bin/maker/bin"),
 		repeatmasker_ok = "bin/RepeatMasker/repeatmasker.ok"
