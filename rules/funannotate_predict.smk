@@ -17,7 +17,8 @@ if (os.environ["RUNMODE"]) == "maker":
 			sample = "{sample}",
 			contig_prefix = "{contig_prefix}",
 			wd = os.getcwd()
-		singularity: "docker://reslp/funannotate:1.7.4"
+		singularity: 
+			config["containers"]["funannotate"]
 		shell:
 			"""
 				echo "FUNANNOTATE predict will not be run (runmode maker was specified). Still some of the files need to be present for the subsquent functional annotation steps to work."
@@ -71,22 +72,18 @@ else:
 		threads: config["predict"]["threads"] 
 		shell:
 			"""
-			if [[ ! -d results/{params.folder}/FUNANNOTATE ]]
+			if [[ -d results/{params.folder}/FUNANNOTATE ]]
 			then
-				mkdir results/{params.folder}/FUNANNOTATE
+				rm -rf results/{params.folder}/FUNANNOTATE
 			fi
+			mkdir results/{params.folder}/FUNANNOTATE
+			export GENEMARK_PATH=/usr/local/Genemark
+			export PATH=$PATH:/usr/local/SignalP
+
 			cd results/{params.folder}/FUNANNOTATE
 			funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred --optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} --ploidy {params.ploidy} --protein_evidence {params.wd}/{input.maker_proteins} {params.wd}/data/funannotate_database/uniprot_sprot.fasta --other_gff {params.wd}/{input.maker_gff}:{params.maker_weight} --genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf >& {params.wd}/{log}
 			
-			cd {params.pred_folder}_preds/predict_misc	
-			
-			tar -cvf EVM_busco.tar EVM_busco && rm -r EVM_busco
-	                tar -cvf busco.tar busco && rm -r busco
-	                tar -cvf genemark.tar genemark && rm -r genemark
-	                tar -cvf busco_proteins.tar busco_proteins && rm -r busco_proteins
-	                tar -cvf EVM.tar EVM && rm -r EVM
-	
-			touch ../../../../../{output.check}
+			touch {params.wd}/{output.check}
 	
 			""" 
 
@@ -101,10 +98,8 @@ else:
 		shell:
 			"""
 			cd results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/predict_misc
-			tar -cvf EVM_busco.tar EVM_busco && rm -r EVM_busco
-			tar -cvf busco.tar busco && rm -r busco
-			tar -cvf genemark.tar genemark && rm -r genemark
-			tar -cvf busco_proteins.tar busco_proteins && rm -r busco_proteins
 			tar -cvf EVM.tar EVM && rm -r EVM
+			tar -cvf busco.tar busco && rm -r busco
+			tar -cvf busco_proteins.tar busco_proteins && rm -r busco_proteins
 			touch ../../../../../{output}
 			"""		
