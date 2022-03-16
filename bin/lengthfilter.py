@@ -12,30 +12,30 @@ def check(args):
     if os.path.isfile(args[0]):
         fasta = args[0]
     else:
-        print __doc__
-	print "File not found\n"
+        print(__doc__)
+        print("File not found\n")
         sys.exit(1)
 
     try:
-	m = int(args[1])
+        m = int(args[1])
     except:
-	print __doc__
-	print "Specify minimum length as integer\n"
-	sys.exit(2)
+        print(__doc__)
+        print("Specify minimum length as integer\n")
+        sys.exit(2)
     return fasta,m
 
 def open_fasta(f):
     if f[-2:] == "gz":
         import gzip
-	fh = gzip.open(f)
+        fh = gzip.open(f)
     else:
-	fh = open(f)
+        fh = open(f)
     return fh
     
 def filt(fh, m):
     for r in SeqIO.parse(fh, "fasta"):
-	if len(r.seq) >= m:
-		print ">%s\n%s" %(r.id,str(r.seq))
+        if len(r.seq) >= m:
+            print(">%s\n%s" %(r.id,str(r.seq)))
 
 
 if __name__ == '__main__':
