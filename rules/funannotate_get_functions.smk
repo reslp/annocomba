@@ -1,7 +1,28 @@
+rule split_proteins:
+	input:
+		proteins = rules.predict.output.proteins
+	output:
+		dir = directory("results/{sample}/PROTEIN_PARTITIONS_{contig_prefix}"),
+		checkpoint = "checkpoints/{sample}/split_proteins.{contig_prefix}.ok",
+	singularity:
+		config["containers"]["funannotate"]
+	params:
+		n_batches = get_batch_number,
+		wd = os.getcwd(),
+	shell:
+		"""
+		mkdir {output.dir}
+		cd {output.dir}
+
+		{params.wd}/bin/split_fasta.py {params.wd}/{input.proteins} {params.n_batches}
+
+		touch {params.wd}/{output.checkpoint}
+		"""
 rule iprscan:
 	input:
-		predict_ok = rules.predict.output,
-		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
+#		predict_ok = rules.predict.output,
+		prots = rules.split_proteins.output,
+#		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
 	params:
 		folder="{sample}",
 		pred_folder = "{contig_prefix}",
@@ -13,14 +34,20 @@ rule iprscan:
 		"results/{sample}/logs/ipscan.{contig_prefix}.log"
 	output:
 		check = "checkpoints/{sample}/iprscan.{contig_prefix}.done",
-		xml = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan.xml"
+		outdir = directory("results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan_xmls")
+#		xml = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan.xml"
 	threads: config["threads"]["interproscan"]
-	shadow: "shallow"
+	shadow: "minimal"
 	shell:
 		"""
-		mkdir -p {params.pred_folder}_preds/annotate_misc
-		#funannotate iprscan --iprscan_path /data/external/interproscan-5.33-72.0/interproscan.sh -i ../../results/{params.folder}/{params.pred_folder}_preds -m local -c 2 >& ../../{log}
-		{params.iprscan} -cpu {threads} -i {input.proteins} -o {output.xml} -f XML -goterms -pa >& {log}
+		mkdir -p {output.outdir}
+		for f in $(ls -1 results/{wildcards.sample}/PROTEIN_PARTITIONS_{wildcards.contig_prefix}/*.fasta)
+		do
+			echo -e "\n[$(date)] - processing $f"
+			{params.iprscan} -cpu {threads} -i $f -o {output.outdir}/$(basename $f | sed 's/.fasta$/.xml/') -f XML -goterms -pa 
+			echo -e "\n[$(date)] - Done!"
+			
+		done 2>&1 | tee {log}
 		touch {output.check}
 		"""
 rule remote:
