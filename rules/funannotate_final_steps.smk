@@ -18,9 +18,16 @@ rule annotate:
 	threads: config["annotate"]["threads"]
 	shell:
 		"""
+		#export PATH=$PATH:/usr/local/SignalP
 		cd results/{params.folder}/FUNANNOTATE
-		funannotate annotate -i {params.pred_folder}_preds --sbt {params.wd}/{params.sbt} --eggnog {params.pred_folder}_preds/eggnog_results.emapper.annotations --busco_db {params.buscodb} --cpus {threads} >& ../../../{log}
-		#funannotate annotate -i {params.pred_folder}_preds --sbt ../../data/genbank_template.txt --cpus {threads} >& ../../{log}
+		#merge iprscan xmls
+		head -n 1 {params.pred_folder}_preds/annotate_misc/iprscan_xmls/0001.xml > {params.pred_folder}_preds/annotate_misc/iprscan.xml
+		for f in $(ls -1 {params.pred_folder}_preds/annotate_misc/iprscan_xmls/*.xml); do cat $f | tail -n +2 | head -n -1; done >> {params.pred_folder}_preds/annotate_misc/iprscan.xml
+		tail -n 1 {params.pred_folder}_preds/annotate_misc/iprscan_xmls/0001.xml >> {params.pred_folder}_preds/annotate_misc/iprscan.xml
+
+		#run funannotate annotate
+		funannotate annotate -i {params.pred_folder}_preds --sbt {params.wd}/{params.sbt} --eggnog {params.pred_folder}_preds/eggnog_results.emapper.annotations --busco_db {params.buscodb} --iprscan {params.pred_folder}_preds/annotate_misc/iprscan.xml --cpus {threads} >& ../../../{log}
+		
 		touch ../../../{output}
 		"""
 
