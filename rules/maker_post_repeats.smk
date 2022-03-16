@@ -134,7 +134,7 @@ rule initiate_MAKER_PASS1:
 		transcripts = get_transcripts_path,
 		script = "bin/prepare_maker_opts_PASS1.sh"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stderr.txt"
@@ -147,10 +147,11 @@ rule initiate_MAKER_PASS1:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 
 
-		if [[ ! -d results/{params.prefix}/MAKER.PASS1 ]]
+		if [[ -d results/{params.prefix}/MAKER.PASS1 ]]
 		then
-			mkdir results/{params.prefix}/MAKER.PASS1
+			rm -rf results/{params.prefix}/MAKER.PASS1
 		fi
+		mkdir results/{params.prefix}/MAKER.PASS1
 		cd results/{params.prefix}/MAKER.PASS1
 
 		maker -CTL 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -194,11 +195,12 @@ rule run_MAKER_PASS1:
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
+		extra_params = config['maker']['maker_pass_1_options'] 
 	threads: config["threads"]["run_MAKER_PASS1"]
 	shadow: "shallow"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/MAKER.PASS1.run.{sample}.{unit}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS1.run.{sample}.{unit}.stderr.txt"
@@ -221,7 +223,7 @@ rule run_MAKER_PASS1:
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
-		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c {threads} $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
 		cd {params.prefix}.{params.dir}.maker.output
@@ -269,7 +271,7 @@ rule merge_MAKER_PASS1:
 		prefix = "{sample}",
 		script = "bin/merging.sh"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	output:
 		all_gff = "results/{sample}/MAKER.PASS1/{sample}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.gff",
@@ -298,10 +300,11 @@ rule AUGUSTUS_PASS2:
 		training_params = "results/{sample}/BUSCO/run_{sample}/augustus_output/retraining_parameters",
 		script = "bin/augustus.PASS2.sh",
 		aed = "{aed}",
-		transcripts = get_transcripts_path 
+		transcripts = get_transcripts_path, 
+		extra_params = config['augustus']['train_augustus_options'] 
 	threads: config["threads"]["AUGUSTUS_PASS2"]
 	singularity:
-		"docker://chrishah/augustus:v3.3.2"
+		config["containers"]["augustus"]
 	log:
 		stdout = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/AUGUSTUS.PASS2.{aed}.{sample}.stderr.txt"
@@ -313,9 +316,6 @@ rule AUGUSTUS_PASS2:
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 		basedir=$(pwd)
 		
-		echo -e "TODO: CHECK FOR cDNA evidence and include in autoAug.pl run via --cdna=cdna.fa option - see 'Typical Usage' in Readme of autoAug.pl script"		
-		echo -e "TODO: RUN Augustus across a range of aed cutoffs and use the one that has the best prediction accuracy"		
-
 		if [[ ! -d results/{params.prefix}/AUGUSTUS.PASS2 ]]
 		then
 			mkdir results/{params.prefix}/AUGUSTUS.PASS2/
@@ -328,12 +328,13 @@ rule AUGUSTUS_PASS2:
 		fi
 		cd {params.aed}
 
-		if [[ ! -d tmp.{params.aed} ]]
+		if [[ -d tmp.{params.aed} ]]
 		then
-			mkdir tmp.{params.aed}
+			rm -rf tmp.{params.aed}
 		fi
 		
 		#copy augustus config directory from the image
+		mkdir tmp.{params.aed}
 		cp -rf /usr/share/augustus/config tmp.{params.aed}/config
 
 		est="{params.transcripts[ests]}"
@@ -351,6 +352,7 @@ rule AUGUSTUS_PASS2:
 		$(pwd)/tmp.{params.aed}/config \
 		$basedir/{params.training_params} \
 		cdna.{params.aed}.fasta \
+		'{params.extra_params}' \
 		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		retVal=$?
@@ -385,28 +387,24 @@ rule pick_augustus_training_set:
 	output:
 		ok = "checkpoints/{sample}/pick_augustus_training_set.ok"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["augustus"]
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 
 		echo -e "{input}" 
 		echo -e "{params.aeds}"
+		
 		for aed in $(echo -e "{params.aeds}")
 		do
 			echo -e "$aed\t$(grep "accuracy after optimizing" results/{params.prefix}/logs/AUGUSTUS.PASS2.$aed.{params.prefix}.stdout.txt | rev | cut -d " " -f 1 | rev)"
 		done > results/{params.prefix}/AUGUSTUS.PASS2/summary.tsv
 
-		best=$(cat results/{params.prefix}/AUGUSTUS.PASS2/summary.tsv | tr . , | sort -n -k 2 | cut -f 1 | tr , . | tail -n 1)
+		best=$(cat results/{params.prefix}/AUGUSTUS.PASS2/summary.tsv | perl -ne 'chomp; ($aed,$acc)=split("\t"); if ($acc > $best){{$winner = $aed; $best = $acc}}; if (eof()){{print "$winner\n"}}')
 		echo "{params.prefix}: Best training accuracy was achieved with cutoff $best"
 
+		if [ -d {params.best_params} ]; then rm {params.best_params}; fi
 		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix} {params.best_params}
-		
-		#mkdir {params.best_params}
-		#for f in $(ls -1 results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/)
-		#do
-		#	ln -s $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/$best.{params.prefix}/$f {params.best_params}/$(echo "$f" | sed "s/^$best.//")
-		#done
 		
 		ln -sf $(pwd)/results/{params.prefix}/AUGUSTUS.PASS2/$best/augustus.gff3 {params.gff}
 		echo "$best" > {params.best_aed}
@@ -424,7 +422,7 @@ rule snap_pass2:
 		prefix = "{sample}",
 		script = "bin/snap.p2.sh"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/SNAP.PASS2.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/SNAP.PASS2.{sample}.stderr.txt"
@@ -472,7 +470,7 @@ rule initiate_MAKER_PASS2:
 		params = "results/{sample}/AUGUSTUS.PASS2/training_params",
 		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stderr.txt"
@@ -485,10 +483,11 @@ rule initiate_MAKER_PASS2:
 		export PATH="$(pwd)/bin/maker/bin:$PATH"
 		aed=$(cat {params.best_aed})
 
-		if [[ ! -d results/{params.prefix}/MAKER.PASS2 ]]
+		if [[ -d results/{params.prefix}/MAKER.PASS2 ]]
 		then
-			mkdir results/{params.prefix}/MAKER.PASS2
+			rm -rf results/{params.prefix}/MAKER.PASS2
 		fi
+		mkdir results/{params.prefix}/MAKER.PASS2
 		cd results/{params.prefix}/MAKER.PASS2
 
 		maker -CTL 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -538,10 +537,11 @@ rule run_MAKER_PASS2:
 		dir = "{unit}",
 		prefix = "{sample}",
 		genemark_dir = "bin/Genemark",
-		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta"
+		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
+		extra_params = config['maker']['maker_pass_2_options'] 
 	threads: config["threads"]["run_MAKER_PASS2"]
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/MAKER.PASS2.run.{sample}.{unit}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS2.run.{sample}.{unit}.stderr.txt"
@@ -570,7 +570,7 @@ rule run_MAKER_PASS2:
 		fi
 
 		#run MAKER
-		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
 		cd {params.prefix}.{params.dir}.maker.output
@@ -597,7 +597,7 @@ rule cleanup_MAKER_PASS2:
 		gzipped_results = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz",
 		ok = "checkpoints/{sample}/cleanup_MAKER_PASS2.{unit}.ok"
 	singularity:
-                "docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
