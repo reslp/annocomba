@@ -80,7 +80,7 @@ else:
 			num_orthos = config["compare"]["num_orthos"],
 			ml_method = config["compare"]["ml_method"]
 		singularity:
-			"docker://reslp/funannotate:experimental"
+			config["containers"]["funannotate"]
 		log:
 			"results/FUNANNOTATE_compare.log"
 		threads: config["compare"]["threads"]
