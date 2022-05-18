@@ -26,9 +26,11 @@ predict:
    mem: 94G
    hint: multithread
    ntasks-per-node: 48
+   time: "24:00:00"
 tarpredict:
    J: tarpred
    ntasks-per-node: 1
+   time: "24:00:00"
 iprscan:
    J: ipr
    hint: multithread
@@ -111,7 +113,7 @@ run_MAKER_PASS1:
 #   ntasks: 20
 #   ntasks-per-node: 20
    mem: 10G
-   time: "70:00:00"
+   time: "10:00:00"
 cleanup_MAKER_PASS1:
    J: cMP1
 #   ntasks: 1
