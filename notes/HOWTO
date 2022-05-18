@@ -1,0 +1,28 @@
+export RUNMODE=maker
+./annocomba -t slurm -c data/cluster_config-vsc4.yaml.template --dry -s "--until cegma"
+
+for d in $(cat to_remove); do rm -rf .snakemake/shadow/$d; done
+
+./annocomba -t slurm -c data/cluster_config-vsc4.yaml.template --dry -s "-pr --until iprscan" --dry
+
+#merge xml
+head -n 1 results/GthyKa/FUNANNOTATE/GthyKa_preds/annotate_misc/iprscan_xmls/0001.xml > test.xml
+for f in $(ls -1 results/GthyKa/FUNANNOTATE/GthyKa_preds/annotate_misc/iprscan_xmls/*.xml); do cat $f | tail -n +2 | head -n -1; done >> test.xml
+tail -n 1 results/GthyKa/FUNANNOTATE/GthyKa_preds/annotate_misc/iprscan_xmls/0001.xml >> test.xml
+
+#manually merge phobius results
+echo -e "ID\tTM\tSP\tPrediction" > results/EsKje/FUNANNOTATE/EsKje_preds/annotate_misc/phobius.results.txt
+for f in $(ls -1 results/EsKje/FUNANNOTATE/phobius_58560202-d387-4d26-a178-990e3bbb3db5/*.phobius); do cat $f | tail -n +2 | awk '{print $1"\t"$2"\t"$3"\t"$4}'; done >> results/EsKje/FUNANNOTATE/EsKje_preds/annotate_misc/phobius.results.txt 
+
+#relevant gene in Schistosoma mansoni - https://www.sciencedirect.com/science/article/pii/S2211320720300026 and also the paper suggested by Haakon
+Smp_246790 - Sm.TRPMPZQ
+
+#change dependency so that only a third of rMP1 jobs are running at a time - note that 1920462 in this case is iMP1, so all need to wait for this one
+bash <(squeue -u $USER | grep "rMP1" | awk '{print $1}' | perl -ne 'chomp; $f=$_; $s=<>; chomp $s; $t=<>; chomp $t; print "scontrol update JobId=$s Dependency=afterok:1920462,afterok:$f\nscontrol update JobId=$t Dependency=afterok:1920462,afterok:$s\n"' | head -n -2)
+
+
+./annocomba -t slurm -c data/cluster_config-vsc4.yaml.template --dry -s "-pr --until annotate"
+
+./annocomba -t serial -c data/cluster_config-vsc4.yaml.template -s "-pr --until annotate"
+
+./annocomba -t serial -c data/cluster_config-vsc4.yaml.template -s "-pr --forcerun predict --until predict"

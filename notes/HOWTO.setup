@@ -1,0 +1,32 @@
+#Download genemark from here: http://topaz.gatech.edu/GeneMark/license_download.cgi
+#select GeneMark-ES/ET/EP ver 4.68_lic - Linux 64
+#use 64 bit version (software and key)
+#this will get you a tarball: gmes_linux_64.tar.gz
+wget http://topaz.gatech.edu/GeneMark/tmp/GMtool_dQnST/gmes_linux_64.tar.gz -O data/external/gmes_linux_64.tar.gz
+tar xvfz data/external/gmes_linux_64.tar.gz -C data/external/
+#key comes with this
+#decompress the key
+#gunzip gm_key_64.gz
+
+#mv key into gmes_linux_64 directory
+#mv gm_key_64 gmes_linux_64/
+
+#################
+
+#get maker from https://www.yandell-lab.org/software/maker.html
+#we have tested annocomba with maker-2.31.10.tgz
+
+###############
+#Repbase (optional)
+#put at data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
+
+#######################
+
+#adjust your config file: data/config.yaml
+
+./annocomba --setup
+
+## get interproscan script
+rsync -avpuzP hahnc@vsc4.vsc.ac.at:/gpfs/data/fs71312/reslp/databases/interproscan-5.48-83.0 data/external/
+#then specify position of interproscan.sh script in config file
+#
