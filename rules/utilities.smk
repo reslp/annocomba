@@ -35,16 +35,18 @@ def get_all_samples(wildcards):
 def get_batch_number(wildcards):
 	return sample_data.loc[wildcards.sample, ["batches"]].to_list()
 
-def get_transcripts_path(wildcards, p="data/transcripts/*"):
+def get_transcripts_path(wildcards):
 	#get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
 	dic = {'alt_ests': [], 'ests': []}
-	for f in glob.glob(p):
+	for f in glob.glob("data/transcripts/"+wildcards.sample+"/*"):
 		if f.endswith(".fasta") or f.endswith(".fa") or f.endswith(".fas"):
-			print(f+"-> fasta")
 			if f.split("/")[-1].startswith(wildcards.sample):
+				print(f+"-> fasta - target species est evidence")
 				dic['ests'].append(os.path.abspath(f))
 			else:
+				print(f+"-> fasta - alternative species est evidence")
 				dic['alt_ests'].append(os.path.abspath(f))
+#	print(str(dic))
 	return dic
 
 
