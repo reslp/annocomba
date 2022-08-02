@@ -147,9 +147,9 @@ rule cegma:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 
-		if [[ ! -d results/{params.prefix}/CEGMA ]]
+		if [[ "$(ls -1 results/{params.prefix}/CEGMA/ | wc -l)" -gt 0 ]]
 		then
-			mkdir results/{params.prefix}/CEGMA
+			rm results/{params.prefix}/CEGMA/*
 		fi
 		cd results/{params.prefix}/CEGMA
 
@@ -178,7 +178,7 @@ rule snap_pass1:
 		prefix = "{sample}",
 		script = "bin/snap.p1.sh"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	log:
 		stdout = "results/{sample}/logs/SNAP.PASS1.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/SNAP.PASS1.{sample}.stderr.txt"
