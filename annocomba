@@ -225,6 +225,7 @@ if [ -f ".mountpoints" ]; then mountpoints=$(cat .mountpoints | tr '\n' ' '); fi
 # mount point for funannotate style reapeatmasker libraries removed for now: -B $(pwd)/data/RepeatMaskerLibraries:/software/RepeatMasker/Libraries
 if [[ $RUNMODE == *"all"* ]]; then
   echo "Runmode set to: all. Pipeline will run and combine MAKER and funannotate."
+  export RUNMODE="all"
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
           mkdir -p .conda_pkg_tmp
