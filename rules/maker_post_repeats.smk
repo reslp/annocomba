@@ -70,7 +70,7 @@ if path.exists("bin/Genemark/gm_key"):
 			check = "checkpoints/{sample}/genemark.status.ok",
 		shell:
 			"""
-			echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+			echo -e "\\n$(date)\tStarting on host: $(hostname) ...\\n"
 			export PATH="{params.wd}/{params.genemark_dir}:$PATH"
                 
 			if [[ ! -d results/{params.prefix}/GENEMARK ]]
@@ -79,7 +79,7 @@ if path.exists("bin/Genemark/gm_key"):
 			else
 				if [ "$(ls -1 results/{params.prefix}/GENEMARK/ | wc -l)" -gt 0 ]
 				then
-				echo -e "Cleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
+				echo -e "\\n$(date)\tCleaning up remnants of previous run first" 1> {log.stdout} 2> {log.stderr}
 					rm -rf results/{params.prefix}/GENEMARK
 					mkdir results/{params.prefix}/GENEMARK
 				fi
@@ -91,21 +91,13 @@ if path.exists("bin/Genemark/gm_key"):
 
 			if [ "{params.gmes_petap_params}" == "None" ]
 			then
-				gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+				gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			else
-				gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1> {params.wd}/{log.stdout} 2> {params.wd}/{log.stderr}
+				gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			fi
 
-			retVal=$?
-
-			if [ ! $retVal -eq 0 ]
-			then
-				echo "Genemark ended in an error"
-				exit $retVal
-			else
-				touch {params.wd}/{output.check}
-			fi
-			echo -e "\n$(date)\tFinished!\n"
+			touch {params.wd}/{output.check}
+			echo -e "\\n$(date)\tFinished!\\n"
 		
 			"""		
 else:
@@ -223,7 +215,7 @@ rule run_MAKER_PASS1:
 		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
-		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c {threads} $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
+		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c $(( {threads} - 1 )) $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
 		cd {params.prefix}.{params.dir}.maker.output
@@ -619,7 +611,7 @@ rule merge_MAKER_PASS2:
 		prefix = "{sample}",
 		script = "bin/merging.sh"
 	singularity:
-		"docker://chrishah/premaker-plus:18"
+		config["containers"]["premaker"]
 	output:
 		all_gff = "results/{sample}/MAKER.PASS2/{sample}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS2/{sample}.noseq.maker.gff",
