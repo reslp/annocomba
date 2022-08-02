@@ -104,12 +104,12 @@ else:
 			cd results/{params.folder}/FUNANNOTATE
 
 			# this is just temporal
-			cd ..
-			rm -rf FUNANNOTATE
-			mkdir -p /tmp/annocomba/results/{params.folder}
-			ln -s {params.wd}/results/{params.folder}/* /tmp/annocomba/results/{params.folder}/
-			mkdir /tmp/annocomba/results/{params.folder}/FUNANNOTATE
-			cd /tmp/annocomba/results/{params.folder}/FUNANNOTATE
+			#cd ..
+			#rm -rf FUNANNOTATE
+			#mkdir -p /tmp/annocomba/results/{params.folder}
+			#ln -s {params.wd}/results/{params.folder}/* /tmp/annocomba/results/{params.folder}/
+			#mkdir /tmp/annocomba/results/{params.folder}/FUNANNOTATE
+			#cd /tmp/annocomba/results/{params.folder}/FUNANNOTATE
 			##
 
 			#it's important that the directory has 'config' at it's base - funannotate expects that
@@ -130,9 +130,9 @@ else:
 			$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) >& {params.wd}/{log}
 
 			# this is just temporal
-			cd -
-			mv /tmp/annocomba/results/{params.folder}/FUNANNOTATE .
-			rm -rf /tmp/annocomba
+			#cd -
+			#mv /tmp/annocomba/results/{params.folder}/FUNANNOTATE .
+			#rm -rf /tmp/annocomba
 			##
 			touch {params.wd}/{output.check}
 	
