@@ -1,0 +1,57 @@
+# !! expects a config file at data/config.yaml
+#you can make a copy of data/config.yaml.template to start with
+
+########################
+
+#To download genemark go here: http://topaz.gatech.edu/GeneMark/license_download.cgi
+#select GeneMark-ES/ET/EP ver 4.69_lic - Linux 64 kernel 4-5 (last tested 02.08.2022)
+#use 64 bit version (software and key)
+#this will get you a tarball: gmes_linux_64.tar.gz
+link=http://topaz.gatech.edu/GeneMark/tmp/GMtool_WudaF/gmes_linux_64_4.tar.gz
+wget -qO- $link | tar xvz -C data/external/
+#key comes with this
+
+# !!! update genemark path in config file - in the case of the example: data/external/gmes_linux_64_4
+#################
+
+#get maker from https://www.yandell-lab.org/software/maker.html
+#you have to register and get the download link
+#we have tested annocomba with maker-2.31.10.tgz
+
+#now let's try maker-2.31.11.tgz
+link=http://weatherby.genetics.utah.edu/maker_downloads/D3ED/1AD5/C6F9/79B7DA73577CC8BA3F41A0D4/maker-2.31.11.tgz
+wget $link -O data/external/maker-2.31.11.tgz
+
+# !! update maker path in config file
+
+###############
+#Repbase (optional)
+#put at data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
+
+#######################
+
+#Signal P ??
+
+######################
+
+#adjust your config file: data/config.yaml
+
+./annocomba --setup
+
+
+######################################
+#other things to setup
+#not needed for setup step but during functional annotation
+## get interproscan script
+#rsync -avpuzP hahnc@vsc4.vsc.ac.at:/gpfs/data/fs71312/reslp/databases/interproscan-5.48-83.0 data/external/
+#then specify position of interproscan.sh script in config file
+#
+
+#add physical protein evidence to location data/protein_evidence - is expected to be in *.fasta.gz
+#e.g. Uniprot
+wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/knowledgebase/uniprot_sprot.fasta.gz -O data/protein_evidence/uniprot_sprot.fasta.gz
+
+#add transcriptome evidence to data/transcripts/{name_of_sample} - unzipped
+#if the file prefix is identical to the name of the sample to annotate it will be interpreted (by Maker) as transcript of this species, if not it will be interpreted as transcriptome of a related species
+
+
