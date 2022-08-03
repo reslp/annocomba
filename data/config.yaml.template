@@ -56,6 +56,7 @@ predict:
     ploidy: 1
     threads: 48
     maker_weight: 2
+    additional_params: "--force"
 remote:
     methods: "phobius" #"all"
     email: "chrisi.hahni@gmail.com"
