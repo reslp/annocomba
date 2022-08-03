@@ -6,7 +6,8 @@ rule prepare_protein_evidence:
 	params:
 		prefix = "{sample}",
 		mem = "8000",
-		similarity = config["cdhit"]["similarity"]
+		similarity = config["cdhit"]["similarity"],
+		wd = os.getcwd()
 	threads: config["threads"]["prepare_protein_evidence"]
 	singularity:
 		"docker://chrishah/cdhit:v4.8.1"
@@ -29,7 +30,7 @@ rule prepare_protein_evidence:
 		echo -e "Remove redundancy at {params.similarity} in files:\n{input.proteins}"
 
 		#concatenate all physical evidence
-		cat {input.proteins} > external_proteins.fasta.gz
+		cat <(gzip -c {params.wd}/data/funannotate_database/uniprot_sprot.fasta) {input.proteins} > external_proteins.fasta.gz
 
 		#run cd-hit
 		cd-hit -T {threads} -M {params.mem} -i external_proteins.fasta.gz -o external_proteins.cd-hit-{params.similarity}.fasta -c {params.similarity} 1> ../../../{log.stdout} 2> ../../../{log.stderr}
