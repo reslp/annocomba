@@ -47,11 +47,13 @@ wget $link -O data/external/maker-2.31.11.tgz
 #then specify position of interproscan.sh script in config file
 #
 
-#add physical protein evidence to location data/protein_evidence - is expected to be in *.fasta.gz
+#add physical protein evidence to location data/protein_evidence - is expected to be in *.gz, so be careful all files ending in *.gz in this directory will be interpreted as protein evidence
 #e.g. Uniprot
-wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/knowledgebase/uniprot_sprot.fasta.gz -O data/protein_evidence/uniprot_sprot.fasta.gz
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/237/925/GCF_000237925.1_ASM23792v2/GCF_000237925.1_ASM23792v2_protein.faa.gz -O data/protein_evidence/GCF_000237925.1_ASM23792v2_protein.faa.gz
 
 #add transcriptome evidence to data/transcripts/{name_of_sample} - unzipped
 #if the file prefix is identical to the name of the sample to annotate it will be interpreted (by Maker) as transcript of this species, if not it will be interpreted as transcriptome of a related species
 
+########### do dry run - expects data/confg.yaml and (because if so specified in the configfile) data/data.csv
 
+./annocomba -t local --dry
