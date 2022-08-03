@@ -33,7 +33,7 @@ RUNMODE="all"
 RESET="FALSE"
 REMOVE=""
 DRY=""
-export EGGNOGDB="/software/BioSW/eggnogdb"
+export EGGNOGDB="../../../../../software/BioSW/eggnogdb"
 while getopts ":v:t:c:s:m:i:-:" option;
         do
                 case "${option}"
