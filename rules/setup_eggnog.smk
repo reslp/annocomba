@@ -20,7 +20,7 @@ rule setup_eggnog:
 				echo "Good. {params.location}/hmmdb_levels is present."
 				echo "Good. {params.location}/OG_fasta is present."
 				echo "This looks like a genuine Eggnog Database. Will not download anything but will symlink the database to data/eggnogdb"
-				ln -s {params.wd}/{params.location} data/eggnogdb
+				ln -fs {params.wd}/{params.location} data/eggnogdb
 				touch {output}
 			else
 				echo "It does not seem like an Eggnog Database is available at {params.location}."
@@ -33,7 +33,7 @@ rule setup_eggnog:
 				echo "Good. {params.wd}/data/eggnogdb/og2level.tsv.gz is present."
 				echo "Good. {params.wd}/data/eggnogdb/hmmdb_levels is present."
 				echo "Good. {params.wd}/data/eggnogdb/OG_fasta is present."
-				echo "This looks like a genuine Eggnog Database. Will not download anything."
+				echo "This looks like a genuine Eggnog Database. Will not do anything."
 				touch {output}
 			else
 				echo "Will download database now. Please be patient, this can take several minutes."

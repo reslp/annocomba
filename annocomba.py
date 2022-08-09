@@ -32,14 +32,22 @@ def get_bindpoints():
 	with open(".bindpoints", "r") as bpfile:
 		for line in bpfile:
 			bp_string = bp_string + "-B " + line.rstrip() + " "
+	#bp_string += "'"
 	return bp_string
 
 # add new entry to singularity bindpoint file:
 def add_bindpoint(bp):
-	bp = os.path.abspath(bp)
-	if not os.path.isdir(bp):
-		print("The directory", bp, "provided in the YAML file does not exist and will not be mounted in singularity.")
-		return 
+	# if bindpoint is given with location, first split the bp:
+	if ":" in bp:
+		if not os.path.isdir(bp.split(":")[0]):
+			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
+		bp = os.path.abspath(bp.split(":")[0]) + ":" + bp.split(":")[1]
+		print("New Bindpoint:", bp)
+	else:
+		bp = os.path.abspath(bp)
+		if not os.path.isdir(bp):
+			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
+			return 
 	with open(".bindpoints", "r") as bpfile:
 		for line in bpfile:
 			if line.rstrip() == bp:
@@ -109,21 +117,36 @@ if args.command == "setup":
 	setup_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
 	setup_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
 	setup_parser.add_argument("--eggnog", action="store_true", dest="eggnog", default=False)
+	setup_parser.add_argument("--genemark", action="store_true", dest="genemark", default=False)
+	setup_parser.add_argument("--signalp", action="store_true", dest="signalp", default=False)
 	setup_parser.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
 	setup_args = setup_parser.parse_args(args.arguments)
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
 
+	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
 	if setup_args.funannotate:
-		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r", "setup_funannotate"]
+		add_bindpoint("data/funannotate_database:/data/database")
+		cmd.append("setup_funannotate")
 	if setup_args.maker:
-		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r", "setup_maker"]
+		cmd.append("setup_maker")
 	if setup_args.eggnog:
 		with open(setup_args.configf, 'r') as file:
 			config_entries = yaml.safe_load(file)
 			add_bindpoint(config_entries["eggnog_database_path"])
-		cmd = ["snakemake", "-p", "-s", "rules/setup.Snakefile", "--use-singularity", "-r", "setup_eggnog"]
+		cmd.append("setup_eggnog")
+	if setup_args.genemark:
+		cmd.append("setup_genemark")
+	if setup_args.signalp:
+		cmd.append("setup_signalp")
+	if setup_args.all:
+		add_bindpoint("data/funannotate_database:/data/database")
+		with open(setup_args.configf, 'r') as file:
+			config_entries = yaml.safe_load(file)
+			add_bindpoint(config_entries["eggnog_database_path"])
+		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
+		cmd = cmd + ["setup_signalp","setup_genemark","setup_eggnog","setup_maker","setup_funannotate"]
 
 	cmd += get_flags(vars(setup_args), debug)
 	cmd += determine_submission_mode(setup_args.cluster)
@@ -135,3 +158,8 @@ if args.command == "setup":
 		print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
+	# now that setup has run we can add the bindpoints (before they don't exist)
+	if setup_args.signalp:
+		add_bindpoint("bin/SignalP")
+	if setup_args.genemark:
+		add_bindpoint("bin/Genemark")
