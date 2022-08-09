@@ -39,4 +39,5 @@ data/eggnogdb_database
 rulegraph
 checkpoints/
 .parallel/
-
+__pycache__
+bin/annocomba/__pychache__
