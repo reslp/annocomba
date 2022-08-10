@@ -17,7 +17,7 @@ def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
 def help_message(mes):
 	return mes
 
-def determine_submission_mode(flag):
+def determine_submission_mode(flag, njobs):
 	cmd = []
 	if "serial" in flag:
 		return ["--cores" + flag.replace("serial","")]

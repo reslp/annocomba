@@ -13,9 +13,10 @@ default_help = annocomba +  """
 Usage: annocomba <command> <arguments>
 Commands:
 	setup			Setup pipeline
-	annotate-full		Create genome annotations using MAKER and funannotate
-	annotate-maker		Create genome annotations using MAKER
-	annotate-funannotate	Create genome annotatations using funannotate
+	call-genes		De-novo gene-calling using different software
+	annotate		Produce functional annotations for called genes
+	
+	util			Utilities
 	-v, --version 		Print version
 	-h, --help		Display help
 Examples:
@@ -37,7 +38,7 @@ standard_arguments= """Argumemts:
 
 
 setup_help = """
-Usage: annocomba setup
+Usage: annocomba setup <arguments>
 Arguments:
 	--maker			Will setup MAKER and all dependencies
 	--funannotate		Will setup Funannotate and download all databases
@@ -45,3 +46,19 @@ Arguments:
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 
+
+cgenes_help = """
+Usage: annocomba call-genes <command>
+Arguments:
+	--maker			Will generate MAKER annotations
+	--funannotate		Will generate Funannotate annotations
+	--all			Will do all of the above
+
+Additional """ + standard_arguments 
+
+util_help = """
+Usage: annocomba util <arguments>
+Arguments:
+	manage-jobs		Manage jobs from cHPC cluster submissions
+	-h, --help		Display help
+"""

@@ -15,17 +15,9 @@ if sys.version_info[0] < 3:
 	exit(1)
 
 # a few variable definitions 
-#singularity_bindpoints = "-B $(pwd)/data/funannotate_database:/data/database"
 debug = False
+njobs = "10001"
 	
-pars = argparse.ArgumentParser(usage=help_message(default_help))
-pars.add_argument('--debug', action='store_true', dest="debug", required=False)
-pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
-pars.add_argument('command', action='store', nargs="?")
-pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
-
-args = pars.parse_args()
-
 # read singularity bindpoints
 def get_bindpoints():
 	bp_string = ""
@@ -42,7 +34,6 @@ def add_bindpoint(bp):
 		if not os.path.isdir(bp.split(":")[0]):
 			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
 		bp = os.path.abspath(bp.split(":")[0]) + ":" + bp.split(":")[1]
-		print("New Bindpoint:", bp)
 	else:
 		bp = os.path.abspath(bp)
 		if not os.path.isdir(bp):
@@ -55,6 +46,8 @@ def add_bindpoint(bp):
 					print("Bindpoint", bp, "already in .bindpoints. Will not add anything.")
 				return
 	with open(".bindpoints", "a") as bpfile:
+		if debug:
+			print("Adding binpoint:", bp)
 		print(bp, file=bpfile)	
 
 def get_commit():
@@ -80,6 +73,14 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+[get_bindpoints() +" " + flags]
 	else:
 		return ["--singularity-args"]+ [get_bindpoints()]
+
+pars = argparse.ArgumentParser(usage=help_message(default_help))
+pars.add_argument('--debug', action='store_true', dest="debug", required=False)
+pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
+pars.add_argument('command', action='store', nargs="?")
+pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
+
+args = pars.parse_args()
 
 if args.version == True:
 	commit = get_commit()
@@ -109,10 +110,15 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 
+class UtilParser(argparse.ArgumentParser):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.add_argument("-h", "--help", action="store_true")
+		self.add_argument("--verbose", action="store_true", default=False)
+
 if args.command == "setup":
 	print(now(), "Welcome to annocomba setup v%s" % version)
 	setup_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
-	
 	setup_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	setup_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
 	setup_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
@@ -149,8 +155,7 @@ if args.command == "setup":
 		cmd = cmd + ["setup_signalp","setup_genemark","setup_eggnog","setup_maker","setup_funannotate"]
 
 	cmd += get_flags(vars(setup_args), debug)
-	cmd += determine_submission_mode(setup_args.cluster)
-
+	cmd += determine_submission_mode(setup_args.cluster, njobs)
 	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun)
 	cmd += get_additional_singularity_flags(setup_args.si_args)
 
@@ -158,8 +163,77 @@ if args.command == "setup":
 		print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
-	# now that setup has run we can add the bindpoints (before they don't exist)
+	# now that setup has run we can add the bindpoints (before they don't exist). This should be solved in a better way...
 	if setup_args.signalp:
 		add_bindpoint("bin/SignalP")
 	if setup_args.genemark:
 		add_bindpoint("bin/Genemark")
+	if setup_args.maker:
+		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")
+	if setup_args.all:
+		add_bindpoint("bin/SignalP")
+		add_bindpoint("bin/Genemark")
+		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")		
+elif args.command == "call-genes":
+	print(now(), "Welcome to annocomba annotate v%s" % version)
+	anno_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
+	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
+	anno_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
+	anno_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
+	anno_args = anno_parser.parse_args(args.arguments)
+
+	if anno_args.help or len(sys.argv) <= 2:
+		print(help_message(cgenes_help))
+		sys.exit(0)
+	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-r"]
+	if anno_args.maker:
+		cmd.append("maker_all")	
+		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
+
+	cmd += get_flags(vars(anno_args), debug)
+	cmd += determine_submission_mode(anno_args.cluster, njobs)
+	cmd += get_additional_snakemake_flags(anno_args.sm_args, anno_args.rerun)
+	cmd += get_additional_singularity_flags(anno_args.si_args)
+	
+	for line in execute_command(cmd, anno_args.verbose):
+		print(line, end="\r")
+	if debug:
+		print(now(),"DEBUG:", cmd)
+elif args.command == "annotate":
+	print("Functional annotation")
+elif args.command == "util":
+	print(now(), "Welcome to annocomba util v%s" % version)
+
+	if  len(args.arguments) == 0: 
+		print(help_message(util_help))
+		sys.exit(0)
+	elif args.arguments[0] == "-h" or args.arguments[0] == "--help":
+		print(help_message(util_help))
+		sys.exit(0)
+	else:
+		which_util = args.arguments.pop(0)
+	if which_util == "manage-jobs":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-f","--logfile", action="store", default=None)
+		qs_parser.add_argument("-c", "--cancel", action="store_true", default=False)
+		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_modify_busco_help))
+			sys.exit(0)
+		if not qs_args.logfile:
+			list_of_files = glob.glob('log/annocomba/*')
+			lf = max(list_of_files, key=os.path.getctime)
+			print("No logfile specified. Will use the latest logfile:", lf)
+			qs_args.logfile = lf
+		cmd = ["python3", "bin/parse-log.py", "-f", qs_args.logfile, "-l"]
+		if qs_args.cancel:
+			cmd += ["--cancel"] 
+		if qs_args.verbose:
+			cmd += ["--verbose"]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet, True):
+			print(line, end="\r")
+else:
+	print("Runmode not recognized")
