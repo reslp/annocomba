@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import sys, os, io
 sys.path.insert(0, os.getcwd()+"/bin")
 from annocomba.usageinfo import *
@@ -8,11 +7,19 @@ from annocomba.utilities import *
 #import subprocess
 import argparse
 import glob
-import yaml
+try:
+	import snakemake
+	import yaml
+except ModuleNotFoundError:
+	print("ERROR: Modules necessary for annocomba not found. Modules yaml and snakemake need to be available.")
+	sys.exit(1)
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
 	exit(1)
+
+if snakemake.__version__ != "6.0.2":
+	print("WARNING: You are using a different Snakemake version (", snakemake.__version, ") than what is recommended ( 6.0.2 ). This could lead to problems")
 
 # a few variable definitions 
 debug = False
@@ -189,6 +196,9 @@ elif args.command == "call-genes":
 	if anno_args.maker:
 		cmd.append("maker_all")	
 		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
+	elif anno_args.funannotate:
+		print("--funannotate not yet implemented")
+		sys.exit(0)
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
@@ -200,7 +210,7 @@ elif args.command == "call-genes":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command == "annotate":
-	print("Functional annotation")
+	print("Functional annotation not yet implemented.")
 elif args.command == "util":
 	print(now(), "Welcome to annocomba util v%s" % version)
 
