@@ -6,7 +6,7 @@ import os
 configfile: "data/config.yaml"
 sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
 
-include: "rules/utilities.smk"
+include: "utilities.smk"
 
 rule all:
 	input:
@@ -46,11 +46,11 @@ rule maker_all:
 		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),	
 		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
 
-include: "rules/funannotate_sort_mask.smk"
-include: "rules/maker_part_one.smk"
-include: "rules/repeats.smk"
-include: "rules/maker_post_repeats.smk"
-include: "rules/funannotate_predict.smk"
-include: "rules/funannotate_get_functions.smk"
-include: "rules/funannotate_final_steps.smk"
+include: "funannotate_sort_mask.smk"
+include: "maker_part_one.smk"
+include: "repeats.smk"
+include: "maker_post_repeats.smk"
+include: "funannotate_predict.smk"
+include: "funannotate_get_functions.smk"
+include: "funannotate_final_steps.smk"
 
