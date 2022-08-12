@@ -14,19 +14,19 @@ rule setup_maker:
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 		basedir=$(pwd)
 
-		if [ "{params.repbase}" == "None" ]
+		if [ "{params.repbase}" == "None" || ! -f {params.repbase} ]
 		then
 			echo -e "No Repbase Repeatmasker library provided - ok"
 		else
 			echo -e "Repbase Repatmasker library provided: {params.repbase} - ok"
+			echo -e "Setting up RepeatMasker in '$(pwd)/bin/RepeatMasker/'"
+			bin/setup_Repeatmasker.sh bin/ {params.repbase}
 		fi
-		echo -e "Setting up RepeatMasker in '$(pwd)/bin/RepeatMasker/'"
-		bin/setup_Repeatmasker.sh bin/ {params.repbase}
 		touch {output.repeatmasker_ok}
 
-		if [ "{input.maker_tarball}" == "None" ]
+		if [ "{input.maker_tarball}" == "None" || ! -f {input.maker_tarball} ]
 		then
-			echo -e "Providing a maker tarball is mandatory"
+			echo -e "Providing a maker tarball is mandatory. Check if you added the correct path to the config yaml file."
 			exit 1
 		else
 			echo -e "\nSetting up maker in '$(pwd)/bin/maker/'"
