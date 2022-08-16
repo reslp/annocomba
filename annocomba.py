@@ -174,12 +174,12 @@ if args.command == "setup":
 	if setup_args.signalp:
 		add_bindpoint("bin/SignalP")
 	if setup_args.genemark:
-		add_bindpoint("bin/Genemark")
+		add_bindpoint("bin/Genemark:/usr/local/Genemark")
 	if setup_args.maker:
 		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")
 	if setup_args.all:
 		add_bindpoint("bin/SignalP")
-		add_bindpoint("bin/Genemark")
+		add_bindpoint("bin/Genemark:/usr/local/Genemark")
 		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")		
 elif args.command == "call-genes":
 	print(now(), "Welcome to annocomba annotate v%s" % version)
