@@ -46,11 +46,17 @@ rule maker_all:
 #		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),	
 #		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
 
+rule funannotate_predict_all:
+	input:
+		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
+#		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
+		
+
 include: "funannotate_sort_mask.smk"
 include: "maker_part_one.smk"
 include: "repeats.smk"
 include: "maker_post_repeats.smk"
-include: "funannotate_predict.smk"
+include: "funannotate_predict2.smk"
 include: "funannotate_get_functions.smk"
 include: "funannotate_final_steps.smk"
 
