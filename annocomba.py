@@ -193,12 +193,20 @@ elif args.command == "call-genes":
 		print(help_message(cgenes_help))
 		sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-r"]
-	if anno_args.maker:
+	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	
 		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
-	elif anno_args.funannotate:
+	elif anno_args.funannotate and not anno_args.maker:
 		cmd.append("funannotate_predict_all")	
-
+	elif anno_args.funannotate and anno_args.maker:
+		print("--funannotate and --maker not yet implemented")
+		sys.exit(0)
+	elif anno_args.all:
+		print("--all not yet implemented")
+		sys.exit(0)
+	else:
+		print("--other runmode")
+		sys.exit(0)
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
 	cmd += get_additional_snakemake_flags(anno_args.sm_args, anno_args.rerun)
