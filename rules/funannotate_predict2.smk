@@ -79,14 +79,14 @@ rule predict:
 			echo "Transcript evidence detected. Will use in funannotate predict"
 		fi
 
-		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
+		funannotate predict -i {params.wd}/{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
 		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species maker{params.folder} \
 		--ploidy {params.ploidy} \
-		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta $(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta "; fi) \
+		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta $(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta"; fi) \
 		$(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff ]]; then echo -e "--other_gff {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff:{params.maker_weight}"; fi) \
 		--genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf \
 		$(if [[ -f "{params.transcripts[ests]}" ]]; then echo -e "--transcript_evidence {params.transcripts[ests]}"; fi) \
-		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) &> {params.wd}/{log}
+		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) 2>&1 | tee {params.wd}/{log}
 
 		# this is just temporal
 		#cd -
