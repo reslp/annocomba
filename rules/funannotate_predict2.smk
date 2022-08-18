@@ -5,7 +5,7 @@ rule predict:
 		genemark_ok = rules.genemark.output.check
 	output:
 		check = "checkpoints/{sample}/FUNANNOTATE_predict.{contig_prefix}.done",
-		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
+		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.gff3"
 	params:
 		folder = "{sample}",
 		pred_folder = "{contig_prefix}",
@@ -65,15 +65,28 @@ rule predict:
 			cp -p /data/database/trained_species/maker{params.folder}/augustus/* $AUGUSTUS_CONFIG_PATH/species/maker{params.folder}/
 		fi
 
+		## add some echos to know what is going on
+		echo "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta"
+		if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then
+			echo "MAKER.PASS2 proteins detected. Will use in funannotate predict:"
+		fi
+		echo "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff"
+		if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff ]]; then
+			echo "MAKER.PASS2 GFF detected. Will use in funannotate predict"
+		fi
+		echo "{params.transcripts[ests]}"
+		if [[ -f "{params.transcripts[ests]}" ]]; then
+			echo "Transcript evidence detected. Will use in funannotate predict"
+		fi
 
 		funannotate predict -i ../../../{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
 		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species maker{params.folder} \
-		--ploidy {params.ploidy} 
-		--protein_evidence $(if [[ -f {params.wd}/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta"; fi) {params.wd}/data/funannotate_database/uniprot_sprot.fasta \
-		$(if [[ -f {params.wd}/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff ]]; then echo -e "--other_gff {params.wd}/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff:{params.maker_weight}"; fi) \
+		--ploidy {params.ploidy} \
+		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta $(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta "; fi) \
+		$(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff ]]; then echo -e "--other_gff {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff:{params.maker_weight}"; fi) \
 		--genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf \
 		$(if [[ -f "{params.transcripts[ests]}" ]]; then echo -e "--transcript_evidence {params.transcripts[ests]}"; fi) \
-		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) >& {params.wd}/{log}
+		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) &> {params.wd}/{log}
 
 		# this is just temporal
 		#cd -
