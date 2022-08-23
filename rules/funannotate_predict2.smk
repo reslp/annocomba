@@ -116,3 +116,12 @@ rule tarpredict:
 		tar -cf busco_proteins.tar busco_proteins && rm -r busco_proteins
 		touch ../../../../../{output}
 		"""		
+rule aggregate_funannotate_predict:
+	input:
+		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
+	output:
+		"checkpoints/{sample}/aggregate_funannotate_predict.done"
+	shell:
+		"""
+		touch {output}
+		"""	
