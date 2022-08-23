@@ -46,6 +46,11 @@ rule maker_all:
 #		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),	
 #		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
 
+rule annotate_all:
+	input:
+		expand("checkpoints/{name}/split_proteins.ok", name=sample_data.index.tolist()),
+		expand("checkpoints/{name}/aggregate_INTERPROSCAN.done", name=sample_data.index.tolist())
+
 rule funannotate_predict_all:
 	input:
 		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())

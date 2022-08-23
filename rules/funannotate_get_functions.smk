@@ -1,54 +1,63 @@
 rule split_proteins:
 	input:
-		proteins = rules.predict.output.proteins
+		checkpoint = rules.aggregate_funannotate_predict.output
 	output:
-		dir = directory("results/{sample}/PROTEIN_PARTITIONS_{contig_prefix}"),
-		checkpoint = "checkpoints/{sample}/split_proteins.{contig_prefix}.ok",
+		dir = directory("results/{sample}/INTERPROSCAN/protein_batches"),
+		checkpoint = "checkpoints/{sample}/split_proteins.ok",
 	singularity:
 		config["containers"]["funannotate"]
 	params:
 		n_batches = get_batch_number,
 		wd = os.getcwd(),
+		contig_prefix = get_contig_prefix
 	shell:
 		"""
 		mkdir {output.dir}
 		cd {output.dir}
 
-		{params.wd}/bin/split_fasta.py {params.wd}/{input.proteins} {params.n_batches}
+		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{params.contig_prefix}_preds/predict_results/{sample}.proteins.fa {params.n_batches}
 
 		touch {params.wd}/{output.checkpoint}
 		"""
 rule iprscan:
 	input:
-#		predict_ok = rules.predict.output,
-		prots = rules.split_proteins.output,
-#		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.proteins.fa"
+		checkpoint = rules.split_proteins.output,
+		protein_batch_file = "results/{sample}/INTERPROSCAN/protein_batches/{batch}.fasta"
 	params:
 		folder="{sample}",
-		pred_folder = "{contig_prefix}",
+		pred_folder = get_contig_prefix,
 		iprscan=config["iprscan"],
 		wd = os.getcwd()
 	singularity:
 		config["containers"]["interproscan"]
 	log:
-		"results/{sample}/logs/ipscan.{contig_prefix}.log"
+		"results/{sample}/logs/ipscan.{batch}.log"
 	output:
-		check = "checkpoints/{sample}/iprscan.{contig_prefix}.done",
-		outdir = directory("results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan_xmls")
-#		xml = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/annotate_misc/iprscan.xml"
+		check = "checkpoints/{sample}/iprscan.{batch}.done",
+		outxml = "results/{sample}/INTERPROSCAN/output_xmls/{batch}.xml"
 	threads: config["threads"]["interproscan"]
-	shadow: "minimal"
 	shell:
 		"""
-		mkdir -p {output.outdir}
-		for f in $(ls -1 results/{wildcards.sample}/PROTEIN_PARTITIONS_{wildcards.contig_prefix}/*.fasta)
-		do
-			echo -e "\n[$(date)] - processing $f"
-			{params.iprscan} -cpu {threads} -i $f -o {output.outdir}/$(basename $f | sed 's/.fasta$/.xml/') -f XML -goterms -pa 
-			echo -e "\n[$(date)] - Done!"
-			
-		done 2>&1 | tee {log}
+		{params.iprscan} -cpu {threads} -i {input.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
 		touch {output.check}
+		"""
+# this should be moved to utilities or functions.smk:
+def get_iprbatches(wildcards):
+	file_list = []
+	for batch in range(1,int(get_batch_number(wildcards)[0])+1):
+		file_list.append("results/" + wildcards.sample + "/INTERPROSCAN/output_xmls/" + "%04d.xml" % batch)
+	return file_list
+
+
+rule aggregate_iprscan:
+	input:
+		get_iprbatches
+#		expand("results/{name.sample}/INTERPROSCAN/output_xmls/{batch}.xml", name=sample_prefix_units.itertuples())
+	output:
+		"checkpoints/{sample}/aggregate_INTERPROSCAN.done"
+	shell:
+		"""
+		touch {output}
 		"""
 rule remote:
 	input:

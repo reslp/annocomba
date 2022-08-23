@@ -4,6 +4,8 @@ import subprocess
 import logging
 import io
 
+cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
+
 def now():
 	return time.strftime("%Y-%m-%d %H:%M") + " -"
 

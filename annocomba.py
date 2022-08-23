@@ -133,6 +133,7 @@ if args.command == "setup":
 	setup_parser.add_argument("--genemark", action="store_true", dest="genemark", default=False)
 	setup_parser.add_argument("--signalp", action="store_true", dest="signalp", default=False)
 	setup_parser.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
+	setup_parser.add_argument("--interproscan", action="store_true", default=False)
 	setup_args = setup_parser.parse_args(args.arguments)
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
@@ -153,6 +154,15 @@ if args.command == "setup":
 		cmd.append("setup_genemark")
 	if setup_args.signalp:
 		cmd.append("setup_signalp")
+	if setup_args.interproscan:
+		print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in data/external/interproscan-5.48-83.0 exists.")
+		if not os.path.exits("data/external/interproscan-5.48-83.0/interproscan.sh"):
+			print(now(), "Interproscan was not found in data/external/interproscan-5.48-83.0. Please check manually.")
+			sys.exit(0)
+		else:
+			add_bindpoint("data/external/interproscan-5.48-83.0")
+			print(now(), "InterproScan setup finished ok.")
+			sys.exit(0)
 	if setup_args.all:
 		add_bindpoint("data/funannotate_database:/data/database")
 		with open(setup_args.configf, 'r') as file:
@@ -217,7 +227,27 @@ elif args.command == "call-genes":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command == "annotate":
-	print("Functional annotation not yet implemented.")
+	print(now(), "Welcome to annocomba annotate v%s" % version)
+	anno_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
+	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
+	anno_args = anno_parser.parse_args(args.arguments)
+	if anno_args.help or len(sys.argv) <= 2:
+		print(help_message(cgenes_help))
+		sys.exit(0)
+	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-pr"]
+	if anno_args.all:
+		cmd.append("annotate_all")
+		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
+
+	cmd += get_flags(vars(anno_args), debug)
+	cmd += determine_submission_mode(anno_args.cluster, njobs)
+	cmd += get_additional_snakemake_flags(anno_args.sm_args, anno_args.rerun)
+	cmd += get_additional_singularity_flags(anno_args.si_args)
+
+	for line in execute_command(cmd, anno_args.verbose):
+		print(line, end="\r")
+	if debug:
+		print(now(),"DEBUG:", cmd)
 elif args.command == "util":
 	print(now(), "Welcome to annocomba util v%s" % version)
 
