@@ -5,6 +5,9 @@ from math import ceil
 from pathlib import Path
 from subprocess import call
 
+configfile: "data/config.yaml"
+sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
+
 # useful variable definition:
 WD=os.getcwd()
 email="philipp.resl@uni-graz.at"
@@ -38,7 +41,8 @@ def get_batch_number(wildcards):
 def get_transcripts_path(wildcards):
 	#get paths to fasta transcript fasta files - if file has prefix identical to sample prefix in data.csv -> assume it's a transcriptome of this species -> MAKER 'est' option
 	dic = {'alt_ests': [], 'ests': []}
-	for f in glob.glob("data/transcripts/"+wildcards.sample+"/*"):
+	# this is the old behavior with a single folder, but now it can be specified in the config.yaml file:
+	for f in glob.glob(config["est_evidence_path"]+"/*"):
 		if f.endswith(".fasta") or f.endswith(".fa") or f.endswith(".fas"):
 			if f.split("/")[-1].startswith(wildcards.sample):
 				print(f+"-> fasta - target species est evidence")
@@ -46,6 +50,18 @@ def get_transcripts_path(wildcards):
 			else:
 				print(f+"-> fasta - alternative species est evidence")
 				dic['alt_ests'].append(os.path.abspath(f))
+	# on top of that let's check for transcript evidence in the samples file:
+	which_est = sample_data.loc[wildcards.sample, ["est_type"]].to_list()[0]
+	est_path = sample_data.loc[wildcards.sample, ["est_path"]].to_list()[0]
+	for est_file in est_path.split(","): # allow multiple files as est specified in tsv file seperated by commas.
+		if os.path.isfile(est_file):
+			if which_est == "species":
+				dic['ests'].append(os.path.abspath(est_file))
+			if which_est == "other":
+				dic['alt_ests'].append(os.path.abspath(est_file))
+		else:
+			print("EST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
+
 #	print(str(dic))
 	return dic
 

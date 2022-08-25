@@ -1,10 +1,5 @@
 #singularity: "docker://reslp/funannotate:1.7.2"
 
-import pandas as pd
-import os
-
-configfile: "data/config.yaml"
-sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
 
 include: "utilities.smk"
 
