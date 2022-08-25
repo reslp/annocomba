@@ -52,11 +52,16 @@ def get_iprbatches(wildcards):
 rule aggregate_iprscan:
 	input:
 		get_iprbatches
-#		expand("results/{name.sample}/INTERPROSCAN/output_xmls/{batch}.xml", name=sample_prefix_units.itertuples())
 	output:
 		"checkpoints/{sample}/aggregate_INTERPROSCAN.done"
+	params:
+		pred_folder = get_contig_prefix
 	shell:
 		"""
+		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc
+		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
+		for f in "{input}"; do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
+		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
 		touch {output}
 		"""
 rule remote:
