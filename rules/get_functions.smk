@@ -41,6 +41,7 @@ rule iprscan:
 		{params.iprscan} -cpu {threads} -i {input.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
 		touch {output.check}
 		"""
+
 # this should be moved to utilities or functions.smk:
 def get_iprbatches(wildcards):
 	file_list = []
@@ -49,7 +50,7 @@ def get_iprbatches(wildcards):
 	return file_list
 
 
-rule aggregate_iprscan:
+rule gather_iprscan:
 	input:
 		get_iprbatches
 	output:

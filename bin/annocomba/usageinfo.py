@@ -56,6 +56,14 @@ Arguments:
 
 Additional """ + standard_arguments 
 
+annotate_help = """
+Usage: annocomba annotate <command>
+Arguments:
+	--interpro		Will run interproscan on all predicted proteins		
+	--all			Will do all of the above
+
+Additional """ + standard_arguments 
+
 util_help = """
 Usage: annocomba util <arguments>
 Arguments:

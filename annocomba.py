@@ -229,12 +229,15 @@ elif args.command == "call-genes":
 elif args.command == "annotate":
 	print(now(), "Welcome to annocomba annotate v%s" % version)
 	anno_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
+	anno_parser.add_argument("--interproscan", action="store_true", default=False)
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	anno_args = anno_parser.parse_args(args.arguments)
 	if anno_args.help or len(sys.argv) <= 2:
-		print(help_message(cgenes_help))
+		print(help_message(annotate_help))
 		sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-pr"]
+	if anno_args.interproscan:
+		cmd.append("interproscan")
 	if anno_args.all:
 		cmd.append("annotate_all")
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
