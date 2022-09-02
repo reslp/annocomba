@@ -59,7 +59,10 @@ Additional """ + standard_arguments
 annotate_help = """
 Usage: annocomba annotate <command>
 Arguments:
-	--interpro		Will run interproscan on all predicted proteins		
+	--interpro		Will run interproscan on all predicted proteins.		
+	--funannotate-remote	Will run funannotate remote to search for secondary metabolite genes
+				in the AntiSMASH and Phobius databases.
+	--eggnog		Will run eggnogmapper to get functional annotations.
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 

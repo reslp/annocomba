@@ -1,6 +1,6 @@
 rule annotate:
 	input:
-		rules.iprscan.output,
+		rules.interproscan.output,
 		rules.remote.output,
 		rules.eggnog.output
 	output:

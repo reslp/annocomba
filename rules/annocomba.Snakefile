@@ -52,9 +52,6 @@ rule funannotate_predict_all:
 #		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
 		
 
-rule interproscan:
-	input:
-		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=sample_data.index.tolist())
 
 include: "funannotate_sort_mask.smk"
 include: "maker_part_one.smk"

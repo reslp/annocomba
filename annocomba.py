@@ -193,7 +193,7 @@ if args.command == "setup":
 		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")		
 elif args.command == "call-genes":
 	print(now(), "Welcome to annocomba annotate v%s" % version)
-	anno_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
+	anno_parser = AnnoParser(usage=help_message(cgenes_help), add_help=False)
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	anno_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
 	anno_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
@@ -228,8 +228,10 @@ elif args.command == "call-genes":
 		print(now(),"DEBUG:", cmd)
 elif args.command == "annotate":
 	print(now(), "Welcome to annocomba annotate v%s" % version)
-	anno_parser = AnnoParser(usage=help_message(setup_help), add_help=False)
+	anno_parser = AnnoParser(usage=help_message(annotate_help), add_help=False)
 	anno_parser.add_argument("--interproscan", action="store_true", default=False)
+	anno_parser.add_argument("--funannotate-remote", dest="funannotate_remote", action="store_true", default=False)
+	anno_parser.add_argument("--eggnog", dest="eggnog", action="store_true", default=False)
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	anno_args = anno_parser.parse_args(args.arguments)
 	if anno_args.help or len(sys.argv) <= 2:
@@ -237,7 +239,11 @@ elif args.command == "annotate":
 		sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-pr"]
 	if anno_args.interproscan:
-		cmd.append("interproscan")
+		cmd.append("get_functions_interproscan")
+	if anno_args.funannotate_remote:
+		cmd.append("get_functions_remote")
+	if anno_args.eggnog:
+		cmd.append("get_functions_eggnog")
 	if anno_args.all:
 		cmd.append("annotate_all")
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk

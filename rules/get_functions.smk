@@ -19,15 +19,16 @@ rule split_proteins:
 
 		touch {params.wd}/{output.checkpoint}
 		"""
-rule iprscan:
+
+rule interproscan:
 	input:
 		checkpoint = rules.split_proteins.output,
-		protein_batch_file = "results/{sample}/INTERPROSCAN/protein_batches/{batch}.fasta"
 	params:
 		folder="{sample}",
 		pred_folder = get_contig_prefix,
 		iprscan=config["iprscan"],
-		wd = os.getcwd()
+		wd = os.getcwd(),
+		protein_batch_file = "results/{sample}/INTERPROSCAN/protein_batches/{batch}.fasta"
 	singularity:
 		config["containers"]["interproscan"]
 	log:
@@ -38,7 +39,7 @@ rule iprscan:
 	threads: config["threads"]["interproscan"]
 	shell:
 		"""
-		{params.iprscan} -cpu {threads} -i {input.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
+		{params.iprscan} -cpu {threads} -i {params.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
 		touch {output.check}
 		"""
 
@@ -67,16 +68,16 @@ rule gather_iprscan:
 		"""
 rule remote:
 	input:
-		rules.predict.output
+		rules.aggregate_funannotate_predict.output
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_remote.{contig_prefix}.done"
+		"checkpoints/{sample}/FUNANNOTATE_remote.done"
 	params:
 		folder="{sample}",
-		pred_folder = "{contig_prefix}",
+		pred_folder = get_contig_prefix,
 		methods = config["remote"]["methods"],
 		email = config["remote"]["email"]
 	log:
-		"results/{sample}/logs/remote.{contig_prefix}.log"
+		"results/{sample}/logs/remote.log"
 	singularity:
 		config["containers"]["funannotate"]
 	shell:
@@ -87,15 +88,15 @@ rule remote:
 		"""
 rule eggnog:
 	input:
-		rules.predict.output
+		rules.aggregate_funannotate_predict.output
 	output:
-		"checkpoints/{sample}/eggnog.{contig_prefix}.done"
+		"checkpoints/{sample}/eggnog.done"
 	params:
 		sample="{sample}",
-		pred_folder = "{contig_prefix}",
+		pred_folder = get_contig_prefix,
 		wd = os.getcwd()
 	log:
-		"results/{sample}/logs/eggnog.{contig_prefix}.log"
+		"results/{sample}/logs/eggnog.log"
 	singularity:
 		"docker://reslp/eggnog-mapper:1.0.3"
 	threads: config["eggnog"]["threads"]
@@ -106,15 +107,44 @@ rule eggnog:
 		touch ../../../{output}
 		"""
 
-rule get_functions:
+rule get_functions_all:
 	input:
-		rules.eggnog.output,
-		rules.iprscan.output,
-		rules.remote.output
+		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=sample_data.index.tolist()),
+		expand("checkpoints/{sample}/remote.done", sample=sample_data.index.tolist()),
+		expand("checkpoints/{sample}/eggnog.done", sample=sample_data.index.tolist())
 	output:
-		"checkpoints/{sample}/get_functions.{contig_prefix}.done"
+		"checkpoints/{sample}/get_functions.all.done"
 	shell:
 		"""
 		touch {output}
 		"""
 
+rule get_functions_interproscan:
+	input:
+		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=sample_data.index.tolist())
+	output:
+		"checkpoints/get_functions.interproscan.done"
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule get_functions_remote:
+	input:
+		expand("checkpoints/{sample}/FUNANNOTATE_remote.done", sample=sample_data.index.tolist())
+	output:
+		"checkpoints/get_functions.remote.done"
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule get_functions_eggnog:
+	input:
+		expand("checkpoints/{sample}/eggnog.done", sample=sample_data.index.tolist())
+	output:
+		"checkpoints/get_functions.eggnog.done"
+	shell:
+		"""
+		touch {output}
+		"""
