@@ -7,12 +7,15 @@ from annocomba.utilities import *
 #import subprocess
 import argparse
 import glob
+import yaml
+
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
 	exit(1)
 try:
 	import snakemake
 	import yaml
+	import pandas as pd
 except ImportError:
 	print("ERROR: Modules necessary for annocomba not found. Modules yaml and snakemake need to be available.")
 	sys.exit(1)
@@ -39,22 +42,30 @@ def add_bindpoint(bp):
 	# if bindpoint is given with location, first split the bp:
 	if ":" in bp:
 		if not os.path.isdir(bp.split(":")[0]):
-			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
+			if debug:
+				print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
+			return
 		bp = os.path.abspath(bp.split(":")[0]) + ":" + bp.split(":")[1]
 	else:
 		bp = os.path.abspath(bp)
-		if not os.path.isdir(bp):
-			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
+		wd = os.getcwd()
+		if not os.path.exists(bp):
+			if debug:
+				print(now(), "The specified bindpoint", bp, "does not exist and will not be mounted in singularity.")
 			return 
+		if bp.startswith(wd):
+			if debug:
+				print(now(), "Mountpoint appears to be inside of working directory. Bindpoint is not necessary and will not be added.")
+				return
 	with open(".bindpoints", "r") as bpfile:
 		for line in bpfile:
 			if line.rstrip() == bp:
 				if debug:
-					print("Bindpoint", bp, "already in .bindpoints. Will not add anything.")
+					print(now(), "Bindpoint", bp, "already in .bindpoints. Will not add anything.")
 				return
 	with open(".bindpoints", "a") as bpfile:
 		if debug:
-			print("Adding binpoint:", bp)
+			print(now(), "Adding binpoint:", bp)
 		print(bp, file=bpfile)	
 
 def get_commit():
@@ -80,6 +91,35 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+[get_bindpoints() +" " + flags]
 	else:
 		return ["--singularity-args"]+ [get_bindpoints()]
+
+# this function is used to check parts of the config files (yaml and samples).
+def check_config_files(configfilepath):
+	print(now(), "Checking config YAML file", configfilepath) 
+	if not os.path.exists(configfilepath):
+		print(now(), "ERROR: Specified config file", configfilepath, "does not exist")
+		sys.exit(1)
+	with open(configfilepath, 'r') as filestream:
+		config_data = yaml.safe_load(filestream)
+	if debug:
+		print("This is the raw data for the config file:")
+		for key in config_data.keys():
+			print("   " + key + ": " + str(config_data[key]))
+	print(now(), "Checking samples file:", config_data["samples"])
+	if not os.path.exists(config_data["samples"]):
+		print(now(), "ERROR: Specified samples data file", config_data["samples"], "does not exist")
+		sys.exit(1)
+	samples_df = pd.read_csv(config_data["samples"], sep="\t")
+	all_files = samples_df["assembly_path"].to_list()
+	all_files += [item for l in samples_df["est_path"].dropna().to_list() for item in l.split(",")]
+	for f in all_files:
+		if not os.path.exists(f):
+			print(now(),"WARNING: The file" , f , "specified in" , config_data["samples"] , "does not exist!")
+	if debug:
+		print("Adding the following items as singularity bindpoints, if they are outside of the working directory:")
+		print(all_files)
+	for f in all_files:
+		add_bindpoint(f)	
+	# here additional checks can be implemented.
 
 pars = argparse.ArgumentParser(usage=help_message(default_help))
 pars.add_argument('--debug', action='store_true', dest="debug", required=False)
@@ -116,6 +156,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--singularity", action="store",dest="si_args", default="")
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
+		self.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -132,13 +173,13 @@ if args.command == "setup":
 	setup_parser.add_argument("--eggnog", action="store_true", dest="eggnog", default=False)
 	setup_parser.add_argument("--genemark", action="store_true", dest="genemark", default=False)
 	setup_parser.add_argument("--signalp", action="store_true", dest="signalp", default=False)
-	setup_parser.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
 	setup_parser.add_argument("--interproscan", action="store_true", default=False)
 	setup_args = setup_parser.parse_args(args.arguments)
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
-
+        
+        
 	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
 	if setup_args.funannotate:
 		add_bindpoint("data/funannotate_database:/data/database")
@@ -155,11 +196,14 @@ if args.command == "setup":
 	if setup_args.signalp:
 		cmd.append("setup_signalp")
 	if setup_args.interproscan:
-		print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in data/external/interproscan-5.48-83.0 exists.")
-		if not os.path.exits("data/external/interproscan-5.48-83.0/interproscan.sh"):
+		iprpath = "data/external/interproscan-5.48-83.0"
+		print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in",iprpath, "exists.")
+		if not os.path.exists(iprpath):
 			print(now(), "Interproscan was not found in data/external/interproscan-5.48-83.0. Please check manually.")
 			sys.exit(0)
 		else:
+			if os.path.islink(iprpath):
+				add_bindpoint(os.path.realpath(iprpath))
 			add_bindpoint("data/external/interproscan-5.48-83.0")
 			print(now(), "InterproScan setup finished ok.")
 			sys.exit(0)
@@ -167,6 +211,8 @@ if args.command == "setup":
 		add_bindpoint("data/funannotate_database:/data/database")
 		with open(setup_args.configf, 'r') as file:
 			config_entries = yaml.safe_load(file)
+			if os.path.islink(config_entries["eggnog_database_path"]):
+				add_bindpoint(os.path.realpath(config_entries["eggnog_database_path"]))
 			add_bindpoint(config_entries["eggnog_database_path"])
 		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
 		cmd = cmd + ["setup_signalp","setup_genemark","setup_eggnog","setup_maker","setup_funannotate"]
@@ -202,6 +248,8 @@ elif args.command == "call-genes":
 	if anno_args.help or len(sys.argv) <= 2:
 		print(help_message(cgenes_help))
 		sys.exit(0)
+	check_config_files(anno_args.configf)
+	sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-r"]
 	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	
@@ -247,6 +295,9 @@ elif args.command == "annotate":
 	if anno_args.all:
 		cmd.append("annotate_all")
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
+	if not anno_args.all and not anno_args.interproscan and not anno_args.funannotate_remote and not anno_args.eggnog:
+		cmd.append("annotate_all")
+			
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
