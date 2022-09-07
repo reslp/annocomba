@@ -249,7 +249,6 @@ elif args.command == "call-genes":
 		print(help_message(cgenes_help))
 		sys.exit(0)
 	check_config_files(anno_args.configf)
-	sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-r"]
 	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	

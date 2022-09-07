@@ -53,16 +53,18 @@ def get_transcripts_path(wildcards):
 	which_est = sample_data.loc[wildcards.sample, ["est_type"]].to_list()[0]
 	est_path = sample_data.loc[wildcards.sample, ["est_path"]].to_list()[0]
 	if not pd.isna(which_est) or not pd.isna(est_path):
-		for est_file in est_path.split(","): # allow multiple files as est specified in tsv file seperated by commas.
+		for est_file, w_est in zip(est_path.split(","), which_est): # allow multiple files as est specified in tsv file seperated by commas.
 			if os.path.isfile(est_file):
-				if which_est == "species":
+				if w_est == "species":
+					print("\tWill use", est_file, "as species specific EST evidence")
 					dic['ests'].append(os.path.abspath(est_file))
-				if which_est == "other":
+				if w_est == "other":
+					print("\tWill use", est_file, "as alternative EST evidence")
 					dic['alt_ests'].append(os.path.abspath(est_file))
 			else:
-				print("EST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
+				print("\tEST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
 	else:
-		print("EST evidence in TSV file not specified")
+		print("\t" + sample + ": EST evidence in " + config["samples"] + " not specified.")
 	# now remove redundant files in case there are any:
 	dic["alt_ests"] = list(dict.fromkeys(dic["alt_ests"] ))
 	dic["ests"] = list(dict.fromkeys(dic["ests"] ))
@@ -71,9 +73,6 @@ def get_transcripts_path(wildcards):
 	return dic
 
 
-# code to calculate and prepare the number of batches so that snakemake knows how many jobs to spawn
-dic = {'sample': [], 'unit': []}
-unitdict = {}
 print("Checking for EST evidence files (eg. transcriptome assemblies) per sample:")
 for sample in sample_data.index.values.tolist():
 	for f in glob.glob(config["est_evidence_path"]+"/"+sample+"/*"):
@@ -85,17 +84,20 @@ for sample in sample_data.index.values.tolist():
 	which_est = sample_data.loc[sample, ["est_type"]].to_list()[0]
 	est_path = sample_data.loc[sample, ["est_path"]].to_list()[0]
 	if not pd.isna(which_est) or not pd.isna(est_path):
-		for est_file in est_path.split(","): # allow multiple files as est specified in tsv file seperated by commas.
+		for est_file, w_est in zip(est_path.split(","), which_est.split(",")): # allow multiple files as est specified in tsv file seperated by commas.
 			if os.path.isfile(est_file):
-				if which_est == "species":
-					print("\t" + sample + ": " + f + "-> fasta - target species est evidence in " + config["samples"])
-				if which_est == "other":
-					print("\t" + sample + ": " + f + "-> fasta - alternative species est evidence in "+ config["samples"])
+				if w_est == "species":
+					print("\t","Will use", est_file, "as species specific EST evidence")
+				if w_est == "other":
+					print("\t", "Will use", est_file, "as alternative EST evidence")
 			else:
-				print("\t WARNING: EST file", est_file, "specified in samples TSV file NOT FOUND! Thus it will not be used. Please check!")
+				print("\t","EST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
 	else:
 		print("\t" + sample + ": EST evidence in " + config["samples"] + " not specified.")
 
+# code to calculate and prepare the number of batches so that snakemake knows how many jobs to spawn
+dic = {'sample': [], 'unit': []}
+unitdict = {}
 print("Counting batches per sample:")
 for sample in sample_data.index.values.tolist():
 	counter = sample_data.loc[sample, ["batches"]].to_list()
