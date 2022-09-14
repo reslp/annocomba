@@ -157,6 +157,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 		self.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
+		self.add_argument("--select", action="store", default=None)
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -256,7 +257,7 @@ elif args.command == "call-genes":
 	elif anno_args.funannotate and not anno_args.maker:
 		cmd.append("funannotate_predict_all")	
 	elif anno_args.funannotate and anno_args.maker:
-		print("--funannotate and --maker not yet implemented")
+		print("--funannotate and --maker (corresponds to --all) not yet implemented")
 		sys.exit(0)
 	elif anno_args.all:
 		print("--all not yet implemented")
@@ -264,6 +265,9 @@ elif args.command == "call-genes":
 	else:
 		print("--other runmode")
 		sys.exit(0)
+	if anno_args.select:
+		cmd.append("--config")
+		cmd.append("select="+anno_args.select)
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
 	cmd += get_additional_snakemake_flags(anno_args.sm_args, anno_args.rerun)
@@ -296,7 +300,9 @@ elif args.command == "annotate":
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
 	if not anno_args.all and not anno_args.interproscan and not anno_args.funannotate_remote and not anno_args.eggnog:
 		cmd.append("annotate_all")
-			
+	if anno_args.select:
+		cmd.append("--config")
+		cmd.append("select="+anno_args.select)	
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)

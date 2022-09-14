@@ -4,11 +4,11 @@ rule predict:
 		assembly = rules.mask_repeats.output.soft,
 		genemark_ok = rules.genemark.output.check
 	output:
-		check = "checkpoints/{sample}/FUNANNOTATE_predict.{contig_prefix}.done",
-		proteins = "results/{sample}/FUNANNOTATE/{contig_prefix}_preds/predict_results/{sample}.gff3"
+		check = "checkpoints/{sample}/FUNANNOTATE_predict.done",
+		proteins = "results/{sample}/FUNANNOTATE/{sample}_preds/predict_results/{sample}.gff3"
 	params:
 		folder = "{sample}",
-		pred_folder = "{contig_prefix}",
+		pred_folder = get_contig_prefix,
 		sample_name = "{sample}",
 		organism = config["predict"]["organism"],
 		busco_seed_species = config["busco_species"],
@@ -21,7 +21,7 @@ rule predict:
 	singularity:
 		config["containers"]["funannotate"]
 	log:
-		"results/{sample}/logs/FUNANNOTATE_predict.{contig_prefix}.log"
+		"results/{sample}/logs/FUNANNOTATE_predict.log"
 	threads: config["predict"]["threads"] 
 	shell:
 		"""
@@ -56,10 +56,11 @@ rule predict:
 
 
 			#it's important that the directory has 'config' at it's base - funannotate expects that
-			mkdir -p AUGUSTUS/config
+			mkdir -p AUGUSTUS
 			#copy from the original AUGUSTUS_CONFIG_PATH in the container
-			cp -rf $AUGUSTUS_CONFIG_PATH/* AUGUSTUS/config/
+			cp -rf /usr/share/augustus/* AUGUSTUS/
 			#specify new AUGUSTUS_CONFIG
+			#export PATH=/usr/share/augustus/scripts:$PATH
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/AUGUSTUS/config/
 			mkdir $AUGUSTUS_CONFIG_PATH/species/maker{params.folder}
 			cp -p /data/database/trained_species/maker{params.folder}/augustus/* $AUGUSTUS_CONFIG_PATH/species/maker{params.folder}/
@@ -101,9 +102,9 @@ rule tarpredict:
 	input:
 		{rules.predict.output}
 	output:
-		"checkpoints/{sample}/FUNANNOTATE_tarpredict.{contig_prefix}.done"
+		"checkpoints/{sample}/FUNANNOTATE_tarpredict.done"
 	params:
-		pred_folder = "{contig_prefix}",
+		pred_folder = get_contig_prefix,
 		folder = "{sample}"
 	shell:
 		"""
@@ -119,7 +120,7 @@ rule tarpredict:
 
 rule aggregate_funannotate_predict:
 	input:
-		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
+		expand("checkpoints/{name}/FUNANNOTATE_tarpredict.done", name=get_sample_selection())
 	output:
 		"checkpoints/{sample}/aggregate_funannotate_predict.done"
 	shell:

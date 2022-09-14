@@ -7,9 +7,24 @@ from subprocess import call
 
 configfile: "data/config.yaml"
 sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
+if config["select"] == "all":
+	print("Will analyze all samples.")
+else:
+	print("Will only analyze samples:", config["select"])
 
 # useful variable definition:
 WD=os.getcwd()
+
+def get_sample_selection():
+	sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
+	#return sample_data.index.tolist()
+	if config["select"] == "all":
+		print("Will analyze all samples")
+		return sample_data.index.tolist()
+	else:
+		print("Will subset samples to:", config["select"])
+		return config["select"].split(",")
+
 
 #sample_data = pd.read_table(config["samples"]).set_index("sample", drop=False)
 def get_assembly_path(wildcards):

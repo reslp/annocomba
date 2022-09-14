@@ -30,6 +30,7 @@ standard_arguments= """Argumemts:
 	-c, --cluster-config	Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
 	-f, --force		Soft force runmode which has already been run.
 	-F, --FORCE		Hard force runmode recreating all output.
+	--select		Select samples to be analyzed (name in sample column of data file). Comma separated. Default: all
 	
 	--dry			Make a dry run.
 	--verbose		Display more output.
