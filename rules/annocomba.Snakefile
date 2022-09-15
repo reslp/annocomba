@@ -38,13 +38,12 @@ rule maker_all:
 		expand("checkpoints/{name}/merge_MAKER_PASS1.ok", name=get_sample_selection()),
                 expand("checkpoints/{name}/MAKER.PASS2.init.ok", name=get_sample_selection()),
                 expand("results/{name}/MAKER.PASS2/{name}.all.maker.gff", name=get_sample_selection()),
-#		expand("checkpoints/{name.sample}/FUNANNOTATE_tarpredict.{name.contig_prefix}.done", name=sample_prefix_units.itertuples()),	
-#		expand("checkpoints/{name.sample}/get_functions.{name.contig_prefix}.done", name=sample_prefix_units.itertuples())
+
+
 
 rule annotate_all:
 	input:
-		expand("checkpoints/{name}/split_proteins.ok", name=get_sample_selection()),
-		expand("checkpoints/{name}/aggregate_INTERPROSCAN.done", name=get_sample_selection())
+		determine_annotations()
 
 rule funannotate_predict_all:
 	input:

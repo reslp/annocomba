@@ -23,6 +23,26 @@ def get_sample_selection():
 	else:
 		return config["select"].split(",")
 
+# this function determines which functional annotations should be performed. It requires the config parameter annotations provided by the annocomba script.
+def determine_annotations():
+	files = []
+	if config["annotations"] == "interproscan":
+		for sample in get_sample_selection():
+			files.append("checkpoints/"+sample+"/split_proteins.ok")
+			files.append("checkpoints/"+sample+"/aggregate_INTERPROSCAN.done")
+	if config["annotations"] == "eggnog":
+		for sample in get_sample_selection():
+			files.append("checkpoints/"+sample+"/eggnog.done")
+	if config["annotations"] == "remote":
+		for sample in get_sample_selection():
+			files.append("checkpoints/"+sample+"/FUNANNOTATE_remote.done")
+	if config["annotations"] == "all":
+		for sample in get_sample_selection():
+			files.append("checkpoints/"+sample+"/split_proteins.ok")
+			files.append("checkpoints/"+sample+"/aggregate_INTERPROSCAN.done")
+			files.append("checkpoints/"+sample+"/FUNANNOTATE_remote.done")
+			files.append("checkpoints/"+sample+"/eggnog.done")
+	return files
 
 #sample_data = pd.read_table(config["samples"]).set_index("sample", drop=False)
 def get_assembly_path(wildcards):

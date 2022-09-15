@@ -150,7 +150,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("-F", "--FORCE", action="store_true" )
 		self.add_argument("-t", "--cluster",  action="store", default="local")
 		self.add_argument("-c", "--cluster-config", action="store")
-		self.add_argument("--dry", action="store_true")
+		self.add_argument("--dry", action="store_true", default=False)
 		self.add_argument("-h", "--help", action="store_true")
 		self.add_argument("--verbose", action="store_true", default=False)	
 		self.add_argument("--singularity", action="store",dest="si_args", default="")
@@ -182,41 +182,44 @@ if args.command == "setup":
         
         
 	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
-	if setup_args.funannotate:
+	if setup_args.funannotate or setup_args.all:
 		add_bindpoint("data/funannotate_database:/data/database")
 		cmd.append("setup_funannotate")
-	if setup_args.maker:
+	if setup_args.maker or setup_args.all:
 		cmd.append("setup_maker")
-	if setup_args.eggnog:
-		with open(setup_args.configf, 'r') as file:
-			config_entries = yaml.safe_load(file)
-			add_bindpoint(config_entries["eggnog_database_path"])
+	if setup_args.eggnog or setup_args.all:
+		if not setup_args.dry:
+			with open(setup_args.configf, 'r') as file:
+				config_entries = yaml.safe_load(file)
+				add_bindpoint(config_entries["eggnog_database_path"])
 		cmd.append("setup_eggnog")
-	if setup_args.genemark:
+	if setup_args.genemark or setup_args.all:
 		cmd.append("setup_genemark")
-	if setup_args.signalp:
+	if setup_args.signalp or setup_args.all:
 		cmd.append("setup_signalp")
-	if setup_args.interproscan:
+	if setup_args.interproscan or setup_args.all:
 		iprpath = "data/external/interproscan-5.48-83.0"
 		print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in",iprpath, "exists.")
-		if not os.path.exists(iprpath):
-			print(now(), "Interproscan was not found in data/external/interproscan-5.48-83.0. Please check manually.")
-			sys.exit(0)
-		else:
-			if os.path.islink(iprpath):
-				add_bindpoint(os.path.realpath(iprpath))
-			add_bindpoint("data/external/interproscan-5.48-83.0")
-			print(now(), "InterproScan setup finished ok.")
-			sys.exit(0)
-	if setup_args.all:
-		add_bindpoint("data/funannotate_database:/data/database")
-		with open(setup_args.configf, 'r') as file:
-			config_entries = yaml.safe_load(file)
-			if os.path.islink(config_entries["eggnog_database_path"]):
-				add_bindpoint(os.path.realpath(config_entries["eggnog_database_path"]))
-			add_bindpoint(config_entries["eggnog_database_path"])
-		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
-		cmd = cmd + ["setup_signalp","setup_genemark","setup_eggnog","setup_maker","setup_funannotate"]
+		if not setup_args.dry:
+			if not os.path.exists(iprpath):
+				print(now(), "Interproscan was not found in data/external/interproscan-5.48-83.0. Please check manually.")
+				sys.exit(0)
+			else:
+				if os.path.islink(iprpath):
+					add_bindpoint(os.path.realpath(iprpath))
+				add_bindpoint("data/external/interproscan-5.48-83.0")
+				print(now(), "InterproScan setup finished ok.")
+				sys.exit(0)
+#	if setup_args.all:
+#		if not setup_args.dry:
+#			add_bindpoint("data/funannotate_database:/data/database")
+#			with open(setup_args.configf, 'r') as file:
+#				config_entries = yaml.safe_load(file)
+#				if os.path.islink(config_entries["eggnog_database_path"]):
+#					add_bindpoint(os.path.realpath(config_entries["eggnog_database_path"]))
+#				add_bindpoint(config_entries["eggnog_database_path"])
+#		cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
+#		cmd = cmd + ["setup_signalp","setup_genemark","setup_eggnog","setup_maker","setup_funannotate"]
 
 	cmd += get_flags(vars(setup_args), debug)
 	cmd += determine_submission_mode(setup_args.cluster, njobs)
@@ -228,16 +231,17 @@ if args.command == "setup":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 	# now that setup has run we can add the bindpoints (before they don't exist). This should be solved in a better way...
-	if setup_args.signalp:
-		add_bindpoint("bin/SignalP")
-	if setup_args.genemark:
-		add_bindpoint("bin/Genemark:/usr/local/Genemark")
-	if setup_args.maker:
-		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")
-	if setup_args.all:
-		add_bindpoint("bin/SignalP")
-		add_bindpoint("bin/Genemark:/usr/local/Genemark")
-		add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")		
+	if not setup_args.dry:
+		if setup_args.signalp:
+			add_bindpoint("bin/SignalP")
+		if setup_args.genemark:
+			add_bindpoint("bin/Genemark:/usr/local/Genemark")
+		if setup_args.maker:
+			add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")
+		if setup_args.all:
+			add_bindpoint("bin/SignalP")
+			add_bindpoint("bin/Genemark:/usr/local/Genemark")
+			add_bindpoint("bin/RepeatMasker:/usr/local/RepeatMasker")		
 elif args.command == "call-genes":
 	print(now(), "Welcome to annocomba annotate v%s" % version)
 	anno_parser = AnnoParser(usage=help_message(cgenes_help), add_help=False)
@@ -289,20 +293,25 @@ elif args.command == "annotate":
 		print(help_message(annotate_help))
 		sys.exit(0)
 	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-pr"]
+	cmd.append("annotate_all")
 	if anno_args.interproscan:
-		cmd.append("get_functions_interproscan")
+		#cmd.append("get_functions_interproscan")
+		which_annotations="interproscan"
 	if anno_args.funannotate_remote:
-		cmd.append("get_functions_remote")
+		which_annotations="remote"
+		#cmd.append("get_functions_remote")
 	if anno_args.eggnog:
-		cmd.append("get_functions_eggnog")
+		which_annotations="eggnog"
+		#cmd.append("get_functions_eggnog")
 	if anno_args.all:
-		cmd.append("annotate_all")
+		which_annotations = "all"
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
 	if not anno_args.all and not anno_args.interproscan and not anno_args.funannotate_remote and not anno_args.eggnog:
 		cmd.append("annotate_all")
-	if anno_args.select:
-		cmd.append("--config")
-		cmd.append("select="+anno_args.select)	
+	
+	cmd.append("--config")
+	cmd.append("select="+anno_args.select)	
+	cmd.append("annotations=" + which_annotations)
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
@@ -312,7 +321,7 @@ elif args.command == "annotate":
 	for line in execute_command(cmd, anno_args.verbose):
 		print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command == "util":
 	print(now(), "Welcome to annocomba util v%s" % version)
 

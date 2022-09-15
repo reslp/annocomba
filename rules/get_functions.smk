@@ -15,7 +15,7 @@ rule split_proteins:
 		mkdir {output.dir}
 		cd {output.dir}
 
-		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/predict_results/{sample}.proteins.fa {params.n_batches}
+		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/predict_results/{wildcards.sample}.proteins.fa {params.n_batches}
 
 		touch {params.wd}/{output.checkpoint}
 		"""
