@@ -198,16 +198,28 @@ if args.command == "setup":
 	if setup_args.signalp or setup_args.all:
 		cmd.append("setup_signalp")
 	if setup_args.interproscan or setup_args.all:
-		iprpath = "data/external/interproscan-5.48-83.0"
-		print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in",iprpath, "exists.")
 		if not setup_args.dry:
+			with open(setup_args.configf, 'r') as file:
+				config_entries = yaml.safe_load(file)
+			iprpath = config_entries["iprscan"]
+			print(now(), "WARNING: setup --interproscan expects that a valid interproscan v5.48-83.0 installation is present in", iprpath, ".")
 			if not os.path.exists(iprpath):
-				print(now(), "Interproscan was not found in data/external/interproscan-5.48-83.0. Please check manually.")
+				print(now(), "Interproscan was not found in", iprpath, "Please check manually.")
 				sys.exit(0)
 			else:
-				if os.path.islink(iprpath):
-					add_bindpoint(os.path.realpath(iprpath))
-				add_bindpoint("data/external/interproscan-5.48-83.0")
+
+				if os.path.exists("data/external/interproscan"):
+					if os.path.islink("data/external/interproscan"):
+						print(now(), "data/external/interproscan already exists and seems to be a symlink. Will overwrite.")
+						os.unlink("data/external/interproscan")
+					else:
+						print(now(), "data/external/interproscan already exists. Nothing will be done")	
+						sys.exit(0)
+				
+				print(now(), "Symlinking:", os.path.abspath(iprpath), "->", os.getcwd()+"/data/external/interproscan")
+				os.symlink(os.path.abspath(iprpath), os.getcwd()+"/data/external/interproscan")
+				add_bindpoint(os.path.abspath(iprpath))	
+				
 				print(now(), "InterproScan setup finished ok.")
 				sys.exit(0)
 #	if setup_args.all:
@@ -368,7 +380,7 @@ elif args.command == "util":
 			print('\033[92m', "OK", '\033[0m')
 		else:	
 			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --maker ?)")
-		print("\tFUNANNOTATE Database -", end="")
+		print("\tFUNANNOTATE -", end="")
 		if os.path.isfile("data/funannotate_database/.setup.done"):
 			print('\033[92m', "OK", '\033[0m')
 		else:	
@@ -389,10 +401,10 @@ elif args.command == "util":
 		else:	
 			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --signalp ?)")
 		print("\tInterproScan -", end="")
-		if os.path.isdir("data/external/interproscan-5.48-83.0"):
+		if os.path.isdir("data/external/interproscan"):
 			print('\033[92m', "OK", '\033[0m')
 		else:	
-			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --signalp ?)")
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --interproscan ?)")
 				
 else:
 	print("Runmode not recognized")

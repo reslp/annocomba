@@ -44,6 +44,9 @@ Arguments:
 	--maker			Will setup MAKER and all dependencies
 	--funannotate		Will setup Funannotate and download all databases
 	--eggnog		Will setup Eggnog DB
+	--interproscan		Will setup Interproscan
+	--signalp		Will setup SignalP
+	--genemark		Will setup Genemark
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 

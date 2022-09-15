@@ -39,7 +39,7 @@ rule interproscan:
 	threads: config["threads"]["interproscan"]
 	shell:
 		"""
-		{params.iprscan} -cpu {threads} -i {params.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
+		{params.iprscan}/interproscan.sh -cpu {threads} -i {params.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
 		touch {output.check}
 		"""
 
