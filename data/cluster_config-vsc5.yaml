@@ -118,7 +118,7 @@ snap_pass2:
 AUGUSTUS_PASS2:
    job-name: AUG2
    hint: nomultithread
-   mem: 40G
+   mem: 70G
    time: "40:00:00"
 pick_augustus_training_set:
    job-name: PAM
