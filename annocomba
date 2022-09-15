@@ -340,7 +340,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help:
-			print(help_message(util_modify_busco_help))
+			print(help_message(util_manage_jobs_help))
 			sys.exit(0)
 		if not qs_args.logfile:
 			list_of_files = glob.glob('log/annocomba/*')
@@ -356,5 +356,43 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, True):
 			print(line, end="\r")
+	if which_util == "check-setup":
+		qs_parser = UtilParser(add_help=False)
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_check_setup_help))
+			sys.exit(0)
+		print(now(), "Checking availability different annocomba components:")
+		print("\tMAKER -", end = "")
+		if os.path.isdir("bin/maker/bin") and os.path.isfile("bin/RepeatMasker/repeatmasker.ok"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --maker ?)")
+		print("\tFUNANNOTATE Database -", end="")
+		if os.path.isfile("data/funannotate_database/.setup.done"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --funannotate ?)")
+		print("\tGenemark -", end="")
+		if os.path.isfile("bin/Genemark/.setup.done"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --genemark ?)")
+		print("\tEGGNOG DB -", end="")
+		if os.path.isfile("data/eggnogdb/.setup.done"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --eggnog ?)")
+		print("\tSignal-P -", end="")
+		if os.path.isfile("bin/SignalP/.setup.done"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --signalp ?)")
+		print("\tInterproScan -", end="")
+		if os.path.isdir("data/external/interproscan-5.48-83.0"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --signalp ?)")
+				
 else:
 	print("Runmode not recognized")

@@ -72,5 +72,23 @@ util_help = """
 Usage: annocomba util <arguments>
 Arguments:
 	manage-jobs		Manage jobs from cHPC cluster submissions
+	check-setup		Quick (and shallow) check of annocomba setup
 	-h, --help		Display help
 """
+
+util_manage_jobs_help= """
+Usage: annocomba manage-jobs <arguments>
+Arguments:
+	-f, --logfile		Logfile to be analyzed. Default: Newest Logfile.
+	-c, --cancel		Cancel jobs listed in logfile.
+	-q, --quiet		Less output.
+
+	-h, --help		Display help
+"""
+
+util_check_setup_help= """
+Usage: annocomba check-setup
+
+This command has no required arguments. It will display basic information about the setup of different annocomba components.
+"""
+
