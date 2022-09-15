@@ -2,7 +2,7 @@ import os
 
 rule setup_eggnog:
 	output:	
-		"data/eggnog_database/.setup.done"
+		"data/eggnogdb/.setup.done"
 	params:
 		database = config["eggnog_database"],
 		location = config["eggnog_database_path"],
