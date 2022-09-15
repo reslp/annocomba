@@ -19,10 +19,8 @@ def get_sample_selection():
 	sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
 	#return sample_data.index.tolist()
 	if config["select"] == "all":
-		print("Will analyze all samples")
 		return sample_data.index.tolist()
 	else:
-		print("Will subset samples to:", config["select"])
 		return config["select"].split(",")
 
 

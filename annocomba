@@ -157,7 +157,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 		self.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
-		self.add_argument("--select", action="store", default=None)
+		self.add_argument("--select", action="store", default="all")
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
