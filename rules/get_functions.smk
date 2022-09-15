@@ -15,7 +15,7 @@ rule split_proteins:
 		mkdir {output.dir}
 		cd {output.dir}
 
-		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{params.contig_prefix}_preds/predict_results/{sample}.proteins.fa {params.n_batches}
+		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/predict_results/{sample}.proteins.fa {params.n_batches}
 
 		touch {params.wd}/{output.checkpoint}
 		"""
@@ -60,10 +60,10 @@ rule gather_iprscan:
 		pred_folder = get_contig_prefix
 	shell:
 		"""
-		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc
-		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
-		for f in "{input}"; do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
-		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{params.pred_folder}_preds/annotate_misc/iprscan.xml
+		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc
+		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
+		for f in "{input}"; do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
+		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
 		touch {output}
 		"""
 rule remote:
@@ -109,9 +109,9 @@ rule eggnog:
 
 rule get_functions_all:
 	input:
-		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=sample_data.index.tolist()),
-		expand("checkpoints/{sample}/remote.done", sample=sample_data.index.tolist()),
-		expand("checkpoints/{sample}/eggnog.done", sample=sample_data.index.tolist())
+		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=get_sample_selection()),
+		expand("checkpoints/{sample}/remote.done", sample=get_sample_selection()),
+		expand("checkpoints/{sample}/eggnog.done", sample=get_sample_selection())
 	output:
 		"checkpoints/{sample}/get_functions.all.done"
 	shell:
@@ -121,7 +121,7 @@ rule get_functions_all:
 
 rule get_functions_interproscan:
 	input:
-		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=sample_data.index.tolist())
+		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=get_sample_selection())
 	output:
 		"checkpoints/get_functions.interproscan.done"
 	shell:
@@ -131,7 +131,7 @@ rule get_functions_interproscan:
 
 rule get_functions_remote:
 	input:
-		expand("checkpoints/{sample}/FUNANNOTATE_remote.done", sample=sample_data.index.tolist())
+		expand("checkpoints/{sample}/FUNANNOTATE_remote.done", sample=get_sample_selection())
 	output:
 		"checkpoints/get_functions.remote.done"
 	shell:
@@ -141,7 +141,7 @@ rule get_functions_remote:
 
 rule get_functions_eggnog:
 	input:
-		expand("checkpoints/{sample}/eggnog.done", sample=sample_data.index.tolist())
+		expand("checkpoints/{sample}/eggnog.done", sample=get_sample_selection())
 	output:
 		"checkpoints/get_functions.eggnog.done"
 	shell:
