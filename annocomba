@@ -183,7 +183,7 @@ if args.command == "setup":
         
 	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
 	if setup_args.funannotate or setup_args.all:
-			print(now(), "Funannotate database will be placed in data/funannotate_database.")
+		print(now(), "Funannotate database will be placed in data/funannotate_database.")
 		if not os.path.exists("data/funannotate_database"):
 			print(now(), "Directory does not exist. Will create data/funannotate_database.")
 			os.mkdir(os.getwd()+"/data/funannotate_database")
