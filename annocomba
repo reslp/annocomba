@@ -181,7 +181,7 @@ if args.command == "setup":
 		print(now(), "Funannotate database will be placed in data/funannotate_database.")
 		if not os.path.exists("data/funannotate_database"):
 			print(now(), "Directory does not exist. Will create data/funannotate_database.")
-			os.mkdir(os.getwd()+"/data/funannotate_database")
+			os.mkdir(os.getcwd()+"/data/funannotate_database")
 		add_bindpoint("data/funannotate_database:/data/database")
 		cmd.append("setup_funannotate")
 	if setup_args.maker or setup_args.all:
