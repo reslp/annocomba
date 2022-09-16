@@ -288,7 +288,7 @@ elif args.command == "call-genes":
 		print(help_message(cgenes_help))
 		sys.exit(0)
 	check_config_files(anno_args.configf)
-	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-r"]
+	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--use-singularity" , "-r"]
 	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	
 		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
