@@ -42,16 +42,13 @@ def add_bindpoint(bp):
 	# if bindpoint is given with location, first split the bp:
 	if ":" in bp:
 		if not os.path.isdir(bp.split(":")[0]):
-			if debug:
-				print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
-			return
+			print(now(), "The directory", bp, "does not exist and will not be mounted in singularity.")
 		bp = os.path.abspath(bp.split(":")[0]) + ":" + bp.split(":")[1]
 	else:
 		bp = os.path.abspath(bp)
 		wd = os.getcwd()
 		if not os.path.exists(bp):
-			if debug:
-				print(now(), "The specified bindpoint", bp, "does not exist and will not be mounted in singularity.")
+			print(now(), "The specified bindpoint", bp, "does not exist and will not be mounted in singularity.")
 			return 
 		if bp.startswith(wd):
 			if debug:
@@ -64,8 +61,7 @@ def add_bindpoint(bp):
 					print(now(), "Bindpoint", bp, "already in .bindpoints. Will not add anything.")
 				return
 	with open(".bindpoints", "a") as bpfile:
-		if debug:
-			print(now(), "Adding binpoint:", bp)
+		print(now(), "Adding bindpoint:", bp)
 		print(bp, file=bpfile)	
 
 def get_commit():
@@ -179,10 +175,9 @@ if args.command == "setup":
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
-        
-        
 	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
 	if setup_args.funannotate or setup_args.all:
+		print(now(),"Preparing setup of Funannotate")
 		print(now(), "Funannotate database will be placed in data/funannotate_database.")
 		if not os.path.exists("data/funannotate_database"):
 			print(now(), "Directory does not exist. Will create data/funannotate_database.")
@@ -190,18 +185,40 @@ if args.command == "setup":
 		add_bindpoint("data/funannotate_database:/data/database")
 		cmd.append("setup_funannotate")
 	if setup_args.maker or setup_args.all:
+		print(now(),"Preparing setup of MAKER")
+		with open(setup_args.configf, 'r') as file:
+			config_entries = yaml.safe_load(file)
+			if not os.path.exists(config_entries["maker_tarball"]):
+				print(now(), "Specified MAKER tarball:", config_entries["maker_tarball"], "does not exist. Please check your", setup_args.configf, "file.")
+				sys.exit(0)
 		cmd.append("setup_maker")
 	if setup_args.eggnog or setup_args.all:
+		print(now(),"Preparing setup of Eggnog DB")
 		if not setup_args.dry:
 			with open(setup_args.configf, 'r') as file:
 				config_entries = yaml.safe_load(file)
 				add_bindpoint(config_entries["eggnog_database_path"])
 		cmd.append("setup_eggnog")
 	if setup_args.genemark or setup_args.all:
+		print(now(), "Preparing setup of Genemark")
+		with open(setup_args.configf,'r') as file:
+			config_entries = yaml.safe_load(file)
+			if not os.path.exists(config_entries["genemark_tarball"]) or not os.path.exists(config_entries["genemark_keyfile"]):
+				print(now(), "Specified Genemark tarball:",config_entries["genemark_tarball"], "or keyfile:",config_entries["genemark_keyfile"], "not found.")
+				print(now(), "Please check your",setup_args.configf, "file.") 
+				sys.exit(0)
 		cmd.append("setup_genemark")
 	if setup_args.signalp or setup_args.all:
+		print(now(), "Preparing setup of SignalP")
+		with open(setup_args.configf,'r') as file:
+			config_entries = yaml.safe_load(file)
+			if not os.path.exists(config_entries["signalp_tarball"]):
+				print(now(), "Specified SignalP tarball:",config_entries["signalp_tarball"], "not found.")
+				print(now(), "Please check your",setup_args.configf, "file.") 
+				sys.exit(0)
 		cmd.append("setup_signalp")
 	if setup_args.interproscan or setup_args.all:
+		print(now(), "Preparing setup of Interproscan")
 		if not setup_args.dry:
 			with open(setup_args.configf, 'r') as file:
 				config_entries = yaml.safe_load(file)
