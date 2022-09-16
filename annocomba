@@ -326,7 +326,7 @@ elif args.command == "annotate":
 	if anno_args.help or len(sys.argv) <= 2:
 		print(help_message(annotate_help))
 		sys.exit(0)
-	cmd = ["snakemake", "-s", "rules/annocomba.Snakefile", "--use-singularity" , "-pr"]
+	cmd = ["snakemake", "-s", "rules/annocomba.annotate.Snakefile", "--use-singularity" , "-pr"]
 	cmd.append("annotate_all")
 	if anno_args.interproscan:
 		#cmd.append("get_functions_interproscan")
