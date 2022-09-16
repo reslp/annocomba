@@ -242,7 +242,6 @@ if args.command == "setup":
 				add_bindpoint(os.path.abspath(iprpath))	
 				
 				print(now(), "InterproScan setup finished ok.")
-				sys.exit(0)
 #	if setup_args.all:
 #		if not setup_args.dry:
 #			add_bindpoint("data/funannotate_database:/data/database")
