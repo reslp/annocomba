@@ -67,6 +67,7 @@ Arguments:
 	--funannotate-remote	Will run funannotate remote to search for secondary metabolite genes
 				in the AntiSMASH and Phobius databases.
 	--eggnog		Will run eggnogmapper to get functional annotations.
+	--edta			Will run EDTA to annotate transposable elements.
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 

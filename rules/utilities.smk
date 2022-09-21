@@ -36,12 +36,16 @@ def determine_annotations():
 	if config["annotations"] == "remote":
 		for sample in get_sample_selection():
 			files.append("checkpoints/"+sample+"/FUNANNOTATE_remote.done")
+	if config["annotations"] == "edta":
+		for sample in get_sample_selection():
+			files.append("checkpoints/"+sample+"/EDTA.done")
 	if config["annotations"] == "all":
 		for sample in get_sample_selection():
 			files.append("checkpoints/"+sample+"/split_proteins.ok")
 			files.append("checkpoints/"+sample+"/aggregate_INTERPROSCAN.done")
 			files.append("checkpoints/"+sample+"/FUNANNOTATE_remote.done")
 			files.append("checkpoints/"+sample+"/eggnog.done")
+			files.append("checkpoints/"+sample+"/EDTA.done")
 	return files
 
 #sample_data = pd.read_table(config["samples"]).set_index("sample", drop=False)
@@ -55,6 +59,15 @@ def get_assembly_path(wildcards):
 		else:
 			pathlist.append(os.path.abspath(path))	
 	return pathlist
+
+def get_edta_parameters(wildcards):
+	args_string = ""
+	#if str(samples.loc[wildcards.sample, "exclude"]) != "nan":
+	#	args_string += "--exclude %s " % str(samples.loc[wildcards.sample, "exclude"])
+	#if str(samples.loc[wildcards.sample, "cds"]) != "nan":
+	#	args_string += "--cds %s " % str(samples.loc[wildcards.sample, "cds"])
+	return args_string
+
 
 def get_contig_prefix(wildcards):
 	return sample_data.loc[wildcards.sample, ["contig_prefix"]].to_list()

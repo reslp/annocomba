@@ -108,6 +108,52 @@ rule eggnog:
 		touch ../../../{output}
 		"""
 
+rule prepare_assembly:
+	input: 
+		assembly = get_assembly_path
+	output:
+		reformatted_assembly = "results/{sample}/{sample}.assembly.fa"
+	params:
+		sp = "{sample}",
+		prefix = get_contig_prefix
+	singularity:
+		"docker://reslp/biopython_plus:1.77"
+	shell:
+		"""
+		#all seqs upper case
+		cat {input.assembly} | awk '{{if ($1 ~ /^>/) {{print $1}} else {{print toupper($1)}}}}' > results/{params.sp}/assembly_tmp.fa
+		#shorten names
+		python bin/rename_contigs.py results/{params.sp}/assembly_tmp.fa {params.prefix} > {output.reformatted_assembly}
+		"""
+
+rule edta:
+	input: 
+		assembly = rules.prepare_assembly.output.reformatted_assembly
+	output:
+		check = "checkpoints/{sample}/EDTA.done"
+	params:
+		args = get_edta_parameters, # at the moment this returns an empty string
+		add_args = "--overwrite 1 --anno 1 --force 1",
+		sp = "{sample}"
+	log:
+		"results/{sample}/logs/{sample}_edta.log"
+	shadow:
+		"shallow"
+	singularity:
+		"docker://reslp/edta:2.0.1"	
+	threads: config["threads"]
+	shell:
+		"""
+		export LC_ALL=C
+		
+		EDTA.pl --genome {input.assembly} {params.add_args} {params.args} --threads {threads} &> {log}
+		
+		#copy output to results folder
+		mkdir -p results/{params.sp}/EDTA
+		cp -rf ./{params.sp}* results/{params.sp}/EDTA
+		touch {output.check}
+		"""
+
 rule get_functions_all:
 	input:
 		expand("checkpoints/{sample}/aggregate_INTERPROSCAN.done", sample=get_sample_selection()),

@@ -322,6 +322,7 @@ elif args.command == "annotate":
 	anno_parser.add_argument("--funannotate-remote", dest="funannotate_remote", action="store_true", default=False)
 	anno_parser.add_argument("--eggnog", dest="eggnog", action="store_true", default=False)
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
+	anno_parser.add_argument("--edta", action="store_true", default=False)
 	anno_args = anno_parser.parse_args(args.arguments)
 	if anno_args.help or len(sys.argv) <= 2:
 		print(help_message(annotate_help))
@@ -337,12 +338,14 @@ elif args.command == "annotate":
 	if anno_args.eggnog:
 		which_annotations="eggnog"
 		#cmd.append("get_functions_eggnog")
+	if anno_args.edta:
+		which_annotations="edta"
 	if anno_args.all:
 		which_annotations = "all"
 		#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
-	if not anno_args.all and not anno_args.interproscan and not anno_args.funannotate_remote and not anno_args.eggnog:
+	if not anno_args.all and not anno_args.interproscan and not anno_args.funannotate_remote and not anno_args.eggnog and not anno_args.edta:
 		cmd.append("annotate_all")
-	
+		
 	cmd.append("--config")
 	cmd.append("select="+anno_args.select)	
 	cmd.append("annotations=" + which_annotations)
