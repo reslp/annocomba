@@ -28,6 +28,4 @@ include: "maker_part_one.smk"
 include: "repeats.smk"
 include: "maker_post_repeats.smk"
 include: "funannotate_predict.smk"
-include: "get_functions.smk"
-include: "funannotate_final_steps.smk"
 
