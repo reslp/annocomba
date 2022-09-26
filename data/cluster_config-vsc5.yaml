@@ -1,12 +1,11 @@
 __default__:
-   time: "72:00:00"
+   job-name: DEF
+   time: "00:10:00"
    ntasks: 1
    cpus-per-task: 1
-   job-name: default
-   hint: nomultithread
    mem: 16G
-   partition: mem_0096 
-   qos: mem_0096
+   partition: zen3_0512 
+   qos: goodluck
    output: $(pwd)/log/cluster-logs/slurm-%j.out
    error: $(pwd)/log/cluster-logs/slurm-%j.err
 clean:
@@ -26,8 +25,9 @@ predict:
 tarpredict:
    job-name: tarpred
    time: "24:00:00"
-iprscan:
+interproscan:
    job-name: ipr
+   time: "05:00:00"
    hint: multithread
    mem: 92G
 remote:
@@ -54,22 +54,27 @@ split_proteins:
    time: "01:00:00"
 busco:
    job-name: busco
+   hint: multithread
    time: "24:00:00"
    mem: 20G
 cegma:
    job-name: cegma
+   hint: multithread
    mem: 20G
    time: "24:00:00"
 repeatmodeler:
    job-name: repmod
+   hint: multithread
    mem: 20G
    time: "48:00:00"
 repeatmasker_denovo:
    job-name: repmad
+   hint: multithread
    mem: 20G
    time: "48:00:00"
 repeatmasker:
    job-name: repmas
+   hint: multithread
    mem: 20G
    time: "48:00:00"
 mask_repeats:
@@ -78,6 +83,7 @@ mask_repeats:
    time: "00:01:00"
 genemark:
    job-name: genemark
+   hint: multithread
    mem: 20G
    time: "24:00:00"
 snap_pass1:
@@ -86,19 +92,21 @@ snap_pass1:
    time: "05:00:00"
 prepare_protein_evidence:
    job-name: CDH
+   hint: multithread
    mem: 20G
    time: "01:00:00"
 initiate_MAKER_PASS1:
    job-name: iMP1
-   time: "70:30:00"
+   time: "00:30:00"
 run_MAKER_PASS1:
    job-name: rMP1
-   mem: 10G
-   time: "10:00:00"
+   hint: multithread
+   mem: 16G
+   time: "20:00:00"
 cleanup_MAKER_PASS1:
    job-name: cMP1
    mem: 4G
-   time: "70:00:00"
+   time: "01:00:00"
 merge_MAKER_PASS1:
    job-name: mMP1
    mem: 4G
@@ -109,7 +117,8 @@ snap_pass2:
    time: "00:30:00"
 AUGUSTUS_PASS2:
    job-name: AUG2
-   mem: 40G
+   hint: nomultithread
+   mem: 70G
    time: "40:00:00"
 pick_augustus_training_set:
    job-name: PAM
@@ -119,6 +128,7 @@ initiate_MAKER_PASS2:
    time: "00:01:00"
 run_MAKER_PASS2:
    job-name: rMP2
+   hint: multithread
    mem: 10G
    time: "70:00:00"
 cleanup_MAKER_PASS2:

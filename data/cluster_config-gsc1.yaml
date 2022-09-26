@@ -1,7 +1,7 @@
 __default__:
-   J: DEF
+   job-name: DEF
    ntasks: 1
-   ntasks-per-core: 1
+   cpus-per-task: 1
    hint: multithread
    qos: hpc
    mem: "4G"
@@ -10,136 +10,136 @@ __default__:
    output: $(pwd)/log/%x-%j.stdout.txt
    error: $(pwd)/log/%x-%j.stderr.txt
 clean:
-   J: clean 
+   job-name: clean 
    mem: 32G
 sort:
-   J: sort
+   job-name: sort
    time: "24:00:00"
 mask:
-   J: mask
+   job-name: mask
    hint: multithread
 predict:
-   J: pred
+   job-name: pred
    mem: 94G
    hint: multithread
    time: "24:00:00"
 tarpredict:
-   J: tarpred
+   job-name: tarpred
    time: "24:00:00"
 iprscan:
-   J: ipr
+   job-name: ipr
    hint: multithread
    mem: 92G
 remote:
-   J: rem
+   job-name: rem
 eggnog:
-   J: egg
+   job-name: egg
    hint: multithread
    mem: 92G
 get_functions:
-   J: getfun
+   job-name: getfun
 annotate:
-   J: anno
+   job-name: anno
    hint: multithread
    mem: 94G
 compare:
-   J: compare
+   job-name: compare
    hint: multithread
    mem: 94G
 split:
-   J: split
+   job-name: split
    time: "01:00:00"
 split_proteins:
-   J: SPP
+   job-name: SPP
    time: "01:00:00"
 busco:
-   J: busco
+   job-name: busco
    hint: multithread
    time: "24:00:00"
    mem: 20G
 cegma:
-   J: cegma
+   job-name: cegma
    hint: multithread
    mem: 20G
    time: "24:00:00"
 repeatmodeler:
-   J: repmod
+   job-name: repmod
    hint: multithread
    mem: 20G
    time: "48:00:00"
 repeatmasker_denovo:
-   J: repmad
+   job-name: repmad
    hint: multithread
    mem: 20G
    time: "48:00:00"
 repeatmasker:
-   J: repmas
+   job-name: repmas
    hint: multithread
    mem: 20G
    time: "48:00:00"
 mask_repeats:
-   J: masrep
+   job-name: masrep
    mem: 4G
    time: "00:01:00"
 genemark:
-   J: genemark
+   job-name: genemark
    hint: multithread
    mem: 20G
    time: "24:00:00"
 snap_pass1:
-   J: snap1
+   job-name: snap1
    mem: 4G
    time: "05:00:00"
 prepare_protein_evidence:
-   J: CDH
+   job-name: CDH
    hint: multithread
    mem: 20G
    time: "01:00:00"
 initiate_MAKER_PASS1:
-   J: iMP1
+   job-name: iMP1
    time: "70:30:00"
 run_MAKER_PASS1:
-   J: rMP1
+   job-name: rMP1
    hint: multithread
    mem: 16G
    time: "10:00:00"
 cleanup_MAKER_PASS1:
-   J: cMP1
+   job-name: cMP1
    mem: 4G
    time: "70:00:00"
 merge_MAKER_PASS1:
-   J: mMP1
+   job-name: mMP1
    mem: 4G
    time: "01:00:00"
 snap_pass2:
-   J: SNA2
+   job-name: SNA2
    mem: 4G
    time: "00:30:00"
 AUGUSTUS_PASS2:
-   J: AUG2
+   job-name: AUG2
    hint: nomultithread
    mem: 40G
    time: "40:00:00"
 pick_augustus_training_set:
-   J: PAM
+   job-name: PAM
    time: "00:01:00"
 initiate_MAKER_PASS2:
-   J: iMP2
+   job-name: iMP2
    time: "00:01:00"
 run_MAKER_PASS2:
-   J: rMP2
+   job-name: rMP2
    hint: multithread
    mem: 10G
    time: "70:00:00"
 cleanup_MAKER_PASS2:
-   J: cMP2
+   job-name: cMP2
    mem: 4G
    time: "70:00:00"
 merge_MAKER_PASS2:
-   J: mMP2
+   job-name: mMP2
    mem: 4G
    time: "01:00:00"
 all:
-   J: all
+   job-name: all
    mem: 4G
    time: "01:00:00"
