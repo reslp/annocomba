@@ -99,7 +99,7 @@ def get_transcripts_path(wildcards):
 	which_est = sample_data.loc[wildcards.sample, ["est_type"]].to_list()[0]
 	est_path = sample_data.loc[wildcards.sample, ["est_path"]].to_list()[0]
 	if not pd.isna(which_est) or not pd.isna(est_path):
-		for est_file, w_est in zip(est_path.split(","), which_est): # allow multiple files as est specified in tsv file seperated by commas.
+		for est_file, w_est in zip(est_path.split(","), which_est.split(",")): # allow multiple files as est specified in tsv file seperated by commas.
 			if os.path.isfile(est_file):
 				if w_est == "species":
 					print("\tWill use", est_file, "as species specific EST evidence")
@@ -107,6 +107,17 @@ def get_transcripts_path(wildcards):
 				if w_est == "other":
 					print("\tWill use", est_file, "as alternative EST evidence")
 					dic['alt_ests'].append(os.path.abspath(est_file))
+			elif os.path.isdir(est_file):
+				if w_est == "species":
+					print("\t","Will use ALL files in", est_file, "as species specific EST evidence.")
+					for f in glob.glob(est_file+"/*"):
+						if os.path.isfile(f):
+							dic['ests'].append(os.path.abspath(f))
+				if w_est == "other":
+					print("\t", "Will use ALL files in", est_file, "as alternative EST evidence.")
+					for f in glob.glob(est_file+"/*"):
+						if os.path.isfile(f):
+							dic['alt_ests'].append(os.path.abspath(f))
 			else:
 				print("\tEST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
 	else:
@@ -115,7 +126,6 @@ def get_transcripts_path(wildcards):
 	dic["alt_ests"] = list(dict.fromkeys(dic["alt_ests"] ))
 	dic["ests"] = list(dict.fromkeys(dic["ests"] ))
 
-#	print(str(dic))
 	return dic
 
 
@@ -136,6 +146,13 @@ for sample in sample_data.index.values.tolist():
 					print("\t","Will use", est_file, "as species specific EST evidence")
 				if w_est == "other":
 					print("\t", "Will use", est_file, "as alternative EST evidence")
+			elif os.path.isdir(est_file):
+				if w_est == "species":
+					print("\t",sample+":","Will use ALL files in", est_file, "as species specific EST evidence")
+					print("\t"," ".join([f for f in glob.glob(est_file+"/*") if os.path.isfile(f)]))
+				if w_est == "other":
+					print("\t",sample+":", "Will use ALL files in", est_file, "as alternative EST evidence")
+					print("\t"," ".join([f for f in glob.glob(est_file+"/*") if os.path.isfile(f)]))
 			else:
 				print("\t","EST file:", est_file, " specified in samples TSV file not found! Thus it will not be used. Please check!")
 	else:
