@@ -282,7 +282,7 @@ elif args.command == "call-genes":
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	anno_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
 	anno_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
-	anno_parser.add_argument("-t", "--tmpdir", action="store", dest="tmpdir", default=None)
+	anno_parser.add_argument("--tmpdir", action="store", dest="tmpdir", default=None)
 	anno_args = anno_parser.parse_args(args.arguments)
 
 	if anno_args.help or len(sys.argv) <= 2:
