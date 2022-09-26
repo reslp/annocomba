@@ -97,16 +97,16 @@ prepare_protein_evidence:
    time: "01:00:00"
 initiate_MAKER_PASS1:
    job-name: iMP1
-   time: "70:30:00"
+   time: "00:30:00"
 run_MAKER_PASS1:
    job-name: rMP1
    hint: multithread
    mem: 16G
-   time: "10:00:00"
+   time: "20:00:00"
 cleanup_MAKER_PASS1:
    job-name: cMP1
    mem: 4G
-   time: "70:00:00"
+   time: "01:00:00"
 merge_MAKER_PASS1:
    job-name: mMP1
    mem: 4G
