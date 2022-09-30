@@ -97,6 +97,12 @@ if path.exists("bin/Genemark/gm_key"):
 				gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			fi
 
+			# tar genemark output so save space and reduce number of files:
+			tar -cf output.tar -C $(pwd) output
+			tar -cf output.tar -C $(pwd) data
+			rm -rf output
+			rm -rf data
+
 			touch {params.wd}/{output.check}
 			echo -e "\\n$(date)\tFinished!\\n"
 		
