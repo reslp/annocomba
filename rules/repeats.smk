@@ -5,7 +5,7 @@ rule repeatmodeler:
 		prefix = "{sample}",
 	threads: config["threads"]["repeatmodeler"]
 	singularity:
-		config["containers"]["premaker"]
+		config["containers"]["repeatmodeler"]
 	log:
 		stdout = "results/{sample}/logs/REPEATMODELER.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/REPEATMODELER.{sample}.stderr.txt"
