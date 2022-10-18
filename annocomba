@@ -53,13 +53,14 @@ def add_bindpoint(bp):
 		if bp.startswith(wd):
 			if debug:
 				print(now(), "Mountpoint appears to be inside of working directory. Bindpoint is not necessary and will not be added.")
-				return
+			return
 	with open(".bindpoints", "r") as bpfile:
 		for line in bpfile:
 			if line.rstrip() == bp:
 				if debug:
 					print(now(), "Bindpoint", bp, "already in .bindpoints. Will not add anything.")
 				return
+				
 	with open(".bindpoints", "a") as bpfile:
 		print(now(), "Adding bindpoint:", bp)
 		print(bp, file=bpfile)	
