@@ -35,7 +35,7 @@ def open_fasta(f):
 def filt(fh, m):
     for r in SeqIO.parse(fh, "fasta"):
         if len(r.seq) >= m:
-            print(">%s\n%s" %(r.id,str(r.seq)))
+            print(">" + r.id.replace(" ", "_").replace("|","_") + "\n" + str(r.seq)) # replace several special characters to prevent unintended changes to the sequence ids.
 
 
 if __name__ == '__main__':
