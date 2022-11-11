@@ -47,6 +47,7 @@ Arguments:
 	--interproscan		Will setup Interproscan
 	--signalp		Will setup SignalP
 	--genemark		Will setup Genemark
+	--ncbi-check		Will setup NCBI FCS for assembly cleaning
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 
