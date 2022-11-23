@@ -1,12 +1,8 @@
-#singularity: "docker://reslp/funannotate:1.7.2"
-
-
 include: "utilities.smk"
-
 
 rule maker_all:
 	input:
-		expand("results/{name}/{name}_sorted.fas", name=get_sample_selection()),
+#		expand("results/{name}/{name}_sorted.fas", name=get_sample_selection()),
                 expand("checkpoints/{name}/split.ok", name=get_sample_selection()),
 		expand("checkpoints/{name}/busco.status.ok", name=get_sample_selection()),
                 expand("checkpoints/{name}/cegma.status.ok", name=get_sample_selection()),
@@ -23,7 +19,7 @@ rule funannotate_predict_all:
 		expand("checkpoints/{name}/FUNANNOTATE_tarpredict.done", name=get_sample_selection())
 		
 
-include: "funannotate_sort_mask.smk"
+include: "assembly_cleanup.smk"
 include: "maker_part_one.smk"
 include: "repeats.smk"
 include: "maker_post_repeats.smk"
