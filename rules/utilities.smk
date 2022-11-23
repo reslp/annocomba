@@ -14,6 +14,9 @@ if config["select"] == "all":
 else:
 	print("Will only analyze samples:", config["select"])
 
+if config["exclude"] != "none":
+	print("Will exlude samples from analysis:", config["exclude"])
+
 # useful variable definition:
 WD=os.getcwd()
 
@@ -21,7 +24,10 @@ def get_sample_selection():
 	sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
 	#return sample_data.index.tolist()
 	if config["select"] == "all":
-		return sample_data.index.tolist()
+		if config["exclude"] != "none":
+			return [s for s in sample_data.index.tolist() if s not in config["exclude"].split(",")] 	
+		else:
+			return sample_data.index.tolist()
 	else:
 		return config["select"].split(",")
 

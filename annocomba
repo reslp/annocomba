@@ -156,6 +156,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 		self.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
 		self.add_argument("--select", action="store", default="all")
+		self.add_argument("--exclude", action="store", default="none")
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -313,9 +314,11 @@ elif args.command == "call-genes":
 	else:
 		print("--other runmode")
 		sys.exit(0)
-	if anno_args.select:
-		cmd.append("--config")
-		cmd.append("select="+anno_args.select)
+	
+	cmd.append("--config")
+	cmd.append("select="+anno_args.select)
+	cmd.append("exclude="+anno_args.exclude)
+
 	if anno_args.tmpdir:
 		cmd.append("--shadow-prefix")
 		cmd.append(anno_args.tmpdir)
@@ -362,6 +365,9 @@ elif args.command == "annotate":
 	cmd.append("--config")
 	cmd.append("select="+anno_args.select)	
 	cmd.append("annotations=" + which_annotations)
+	if anno_args.exclude:
+		cmd.append("--config")
+		cmd.append("exclude="+anno_args.exclude)
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
