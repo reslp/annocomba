@@ -141,7 +141,7 @@ rule edta:
 		"shallow"
 	singularity:
 		"docker://reslp/edta:2.0.1"	
-	threads: config["threads"]
+	threads: config["threads"]["edta"]
 	shell:
 		"""
 		export LC_ALL=C

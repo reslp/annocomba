@@ -366,7 +366,6 @@ elif args.command == "annotate":
 	cmd.append("select="+anno_args.select)	
 	cmd.append("annotations=" + which_annotations)
 	if anno_args.exclude:
-		cmd.append("--config")
 		cmd.append("exclude="+anno_args.exclude)
 
 	cmd += get_flags(vars(anno_args), debug)

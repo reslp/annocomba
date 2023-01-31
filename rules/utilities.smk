@@ -9,6 +9,7 @@ from subprocess import call
 configfile: "data/config.yaml"
 sample_data = pd.read_table(config["samples"], header=0, keep_default_na=False).set_index("sample", drop=False)
 #sample_data["taxid"] = np.where(pd.isnull(sample_data["taxid"]),sample_data["taxid"],sample_data["taxid"].astype(str))
+print(config)
 if config["select"] == "all":
 	print("Will analyze all samples.")
 else:
