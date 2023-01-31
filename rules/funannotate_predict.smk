@@ -80,7 +80,7 @@ rule predict:
 			echo "Transcript evidence detected. Will use in funannotate predict"
 		fi
 
-		funannotate predict -i {params.wd}/{input.assembly} -o {params.pred_folder}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
+		funannotate predict -i {params.wd}/{input.assembly} -o {params.sample_name}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
 		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species maker{params.folder} \
 		--ploidy {params.ploidy} \
 		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta $(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta"; fi) \
@@ -108,7 +108,7 @@ rule tarpredict:
 		folder = "{sample}"
 	shell:
 		"""
-		cd results/{params.folder}/FUNANNOTATE/{params.pred_folder}_preds/predict_misc
+		cd results/{params.folder}/FUNANNOTATE/{params.folder}_preds/predict_misc
 		echo -e "Archiving $(pwd)/EVM -> $(pwd)/EVM.tar"
 		tar -cf EVM.tar EVM && rm -r EVM
 		echo -e "Archiving $(pwd)/busco -> $(pwd)/busco.tar"
