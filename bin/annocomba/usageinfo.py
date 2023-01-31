@@ -31,6 +31,7 @@ standard_arguments= """Argumemts:
 	-f, --force		Soft force runmode which has already been run.
 	-F, --FORCE		Hard force runmode recreating all output.
 	--select		Select samples to be analyzed (name in sample column of data file). Comma separated. Default: all
+	--exclude		Exclude samples from being analyzed (name in sample column of data file). Comma separated. Deafult: none
 	
 	--dry			Make a dry run.
 	--verbose		Display more output.
@@ -47,6 +48,7 @@ Arguments:
 	--interproscan		Will setup Interproscan
 	--signalp		Will setup SignalP
 	--genemark		Will setup Genemark
+	--ncbi-check		Will setup NCBI FCS for assembly cleaning
 	--all			Will do all of the above
 
 Additional """ + standard_arguments 

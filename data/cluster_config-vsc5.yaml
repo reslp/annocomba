@@ -8,9 +8,24 @@ __default__:
    qos: goodluck
    output: $(pwd)/log/cluster-logs/slurm-%j.out
    error: $(pwd)/log/cluster-logs/slurm-%j.err
-clean:
-   job-name: clean 
+funannotate_clean:
+   job-name: funclean 
    mem: 32G
+simple_clean:
+   job-name: simclean
+   mem: 10G
+fcs_adaptor:
+   job-name: fcsa
+   mem: 32G
+   time: "01:00:00"
+fcs_foreign:
+   job-name: fcsf
+   mem: 500G
+   time: "24:00:00"
+fcs_foreign_apply_filter:
+   job-name: fcsfapply
+   mem: 10G
+   time: "01:00:00"
 sort:
    job-name: sort
    time: "24:00:00"

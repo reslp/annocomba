@@ -106,6 +106,7 @@ def check_config_files(configfilepath):
 		print(now(), "ERROR: Specified samples data file", config_data["samples"], "does not exist")
 		sys.exit(1)
 	samples_df = pd.read_csv(config_data["samples"], sep="\t")
+	#print(samples_df)
 	all_files = samples_df["assembly_path"].to_list()
 	all_files += [item for l in samples_df["est_path"].dropna().to_list() for item in l.split(",")]
 	for f in all_files:
@@ -155,6 +156,7 @@ class AnnoParser(argparse.ArgumentParser):
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 		self.add_argument("--config-file", action="store", dest="configf", default="data/config.yaml")
 		self.add_argument("--select", action="store", default="all")
+		self.add_argument("--exclude", action="store", default="none")
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -172,6 +174,7 @@ if args.command == "setup":
 	setup_parser.add_argument("--genemark", action="store_true", dest="genemark", default=False)
 	setup_parser.add_argument("--signalp", action="store_true", dest="signalp", default=False)
 	setup_parser.add_argument("--interproscan", action="store_true", default=False)
+	setup_parser.add_argument("--ncbi-check", dest="ncbicheck", action="store_true", default=False)
 	setup_args = setup_parser.parse_args(args.arguments)
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
@@ -243,6 +246,12 @@ if args.command == "setup":
 				add_bindpoint(os.path.abspath(iprpath))	
 				
 				print(now(), "InterproScan setup finished ok.")
+	if setup_args.ncbicheck or setup_args.all:
+		print(now(), "Will setup the NCBI Foreign Contamination Screen (FCS): FCS-GX check to identify foreign sequences in the assembly.")
+		print(now(), "Be warned. This requires approx. 500GB of disk space.")
+		if not setup_args.dry:	
+			add_bindpoint("data/ncbi-fcs-db/")
+		cmd.append("setup_ncbi_check")
 #	if setup_args.all:
 #		if not setup_args.dry:
 #			add_bindpoint("data/funannotate_database:/data/database")
@@ -290,7 +299,7 @@ elif args.command == "call-genes":
 		print(help_message(cgenes_help))
 		sys.exit(0)
 	check_config_files(anno_args.configf)
-	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--use-singularity" , "-r"]
+	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--use-singularity" , "-r", "-p"]
 	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	
 		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
@@ -305,9 +314,11 @@ elif args.command == "call-genes":
 	else:
 		print("--other runmode")
 		sys.exit(0)
-	if anno_args.select:
-		cmd.append("--config")
-		cmd.append("select="+anno_args.select)
+	
+	cmd.append("--config")
+	cmd.append("select="+anno_args.select)
+	cmd.append("exclude="+anno_args.exclude)
+
 	if anno_args.tmpdir:
 		cmd.append("--shadow-prefix")
 		cmd.append(anno_args.tmpdir)
@@ -354,6 +365,8 @@ elif args.command == "annotate":
 	cmd.append("--config")
 	cmd.append("select="+anno_args.select)	
 	cmd.append("annotations=" + which_annotations)
+	if anno_args.exclude:
+		cmd.append("exclude="+anno_args.exclude)
 
 	cmd += get_flags(vars(anno_args), debug)
 	cmd += determine_submission_mode(anno_args.cluster, njobs)
@@ -404,7 +417,7 @@ elif args.command == "util":
 		if qs_args.help:
 			print(help_message(util_check_setup_help))
 			sys.exit(0)
-		print(now(), "Checking availability different annocomba components:")
+		print(now(), "Checking availability of different annocomba components:")
 		print("\tMAKER -", end = "")
 		if os.path.isdir("bin/maker/bin") and os.path.isfile("bin/RepeatMasker/repeatmasker.ok"):
 			print('\033[92m', "OK", '\033[0m')
@@ -435,6 +448,11 @@ elif args.command == "util":
 			print('\033[92m', "OK", '\033[0m')
 		else:	
 			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --interproscan ?)")
+		print("\tNCBI-contaminants-check (FCS) -", end="")
+		if os.path.isfile("data/ncbi-fcs-db/db/check.ok"):
+			print('\033[92m', "OK", '\033[0m')
+		else:	
+			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --ncbi-check ?)")
 				
 else:
 	print("Runmode not recognized")

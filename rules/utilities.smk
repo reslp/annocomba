@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import glob
 from math import ceil
@@ -6,11 +7,16 @@ from pathlib import Path
 from subprocess import call
 
 configfile: "data/config.yaml"
-sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
+sample_data = pd.read_table(config["samples"], header=0, keep_default_na=False).set_index("sample", drop=False)
+#sample_data["taxid"] = np.where(pd.isnull(sample_data["taxid"]),sample_data["taxid"],sample_data["taxid"].astype(str))
+print(config)
 if config["select"] == "all":
 	print("Will analyze all samples.")
 else:
 	print("Will only analyze samples:", config["select"])
+
+if config["exclude"] != "none":
+	print("Will exlude samples from analysis:", config["exclude"])
 
 # useful variable definition:
 WD=os.getcwd()
@@ -19,7 +25,10 @@ def get_sample_selection():
 	sample_data = pd.read_table(config["samples"], header=0, delim_whitespace=True).set_index("sample", drop=False)
 	#return sample_data.index.tolist()
 	if config["select"] == "all":
-		return sample_data.index.tolist()
+		if config["exclude"] != "none":
+			return [s for s in sample_data.index.tolist() if s not in config["exclude"].split(",")] 	
+		else:
+			return sample_data.index.tolist()
 	else:
 		return config["select"].split(",")
 
@@ -49,16 +58,16 @@ def determine_annotations():
 	return files
 
 #sample_data = pd.read_table(config["samples"]).set_index("sample", drop=False)
-def get_assembly_path(wildcards):
-	# this is to get the assembly path information for the sample from the CSV file
-	pathlist = []
-	#quick check if path is absolute. if not make it absolute
-	for path in sample_data.loc[wildcards.sample, ["assembly_path"]].to_list():
-		if os.path.isabs(path):
-			pathlist.append(path)
-		else:
-			pathlist.append(os.path.abspath(path))	
-	return pathlist
+#def get_assembly_path(wildcards):
+#	# this is to get the assembly path information for the sample from the CSV file
+#	pathlist = []
+#	#quick check if path is absolute. if not make it absolute
+#	for path in sample_data.loc[wildcards.sample, ["assembly_path"]].to_list():
+#		if os.path.isabs(path):
+#			pathlist.append(path)
+#		else:
+#			pathlist.append(os.path.abspath(path))	
+#	return pathlist
 
 def get_edta_parameters(wildcards):
 	args_string = ""
@@ -139,7 +148,7 @@ for sample in sample_data.index.values.tolist():
 				print("\t" + sample + ": " + f + "-> fasta - alternative species est evidence in "+ config["est_evidence_path"])
 	which_est = sample_data.loc[sample, ["est_type"]].to_list()[0]
 	est_path = sample_data.loc[sample, ["est_path"]].to_list()[0]
-	if not pd.isna(which_est) or not pd.isna(est_path):
+	if not pd.isna(which_est) and not pd.isna(est_path):
 		for est_file, w_est in zip(est_path.split(","), which_est.split(",")): # allow multiple files as est specified in tsv file seperated by commas.
 			if os.path.isfile(est_file):
 				if w_est == "species":

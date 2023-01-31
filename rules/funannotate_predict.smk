@@ -56,9 +56,9 @@ rule predict:
 
 
 			#it's important that the directory has 'config' at it's base - funannotate expects that
-			mkdir -p AUGUSTUS
+			mkdir -p AUGUSTUS/config
 			#copy from the original AUGUSTUS_CONFIG_PATH in the container
-			cp -rf /usr/share/augustus/* AUGUSTUS/
+			cp -rf $AUGUSTUS_CONFIG_PATH/* AUGUSTUS/config/
 			#specify new AUGUSTUS_CONFIG
 			#export PATH=/usr/share/augustus/scripts:$PATH
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/AUGUSTUS/config/

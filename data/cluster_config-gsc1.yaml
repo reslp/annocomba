@@ -6,12 +6,27 @@ __default__:
    qos: hpc
    mem: "4G"
    time: "00:10:00"
-   exclude: "IT010195"
-   output: $(pwd)/log/%x-%j.stdout.txt
-   error: $(pwd)/log/%x-%j.stderr.txt
-clean:
-   job-name: clean 
+   exclude: "IT010100,IT010101,IT010102,IT010103,IT010104,IT010105,IT010106,IT010107,IT010108,IT010109,IT010110,IT010111,IT010112,IT010113,IT010114,IT010115"
+   output: $(pwd)/log/cluster-logs/%x-%j.stdout.txt
+   error: $(pwd)/log/cluster-logs/%x-%j.stderr.txt
+funannotate_clean:
+   job-name: funclean 
    mem: 32G
+simple_clean:
+   job-name: simclean
+   mem: 10G
+fcs_adaptor:
+   job-name: fcsa
+   mem: 32G
+   time: "01:00:00"
+fcs_foreign:
+   job-name: fcsf
+   mem: 500G
+   time: "24:00:00"
+fcs_foreign_apply_filter:
+   job-name: fcsfapply
+   mem: 10G
+   time: "01:00:00"
 sort:
    job-name: sort
    time: "24:00:00"
@@ -28,6 +43,7 @@ tarpredict:
    time: "24:00:00"
 iprscan:
    job-name: ipr
+   time: "02:00:00"
    hint: multithread
    mem: 92G
 remote:
@@ -80,7 +96,7 @@ repeatmasker:
 mask_repeats:
    job-name: masrep
    mem: 4G
-   time: "00:01:00"
+   time: "00:20:00"
 genemark:
    job-name: genemark
    hint: multithread
@@ -139,6 +155,10 @@ merge_MAKER_PASS2:
    job-name: mMP2
    mem: 4G
    time: "01:00:00"
+interproscan:
+   job-name: ipr
+   mem: 32G
+   time: "10:00:00"
 all:
    job-name: all
    mem: 4G
