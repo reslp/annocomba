@@ -125,7 +125,7 @@ rule fcs_foreign:
 		whichdb = config["assembly_cleanup"]["contaminant_database"] 
 	log:
 		"results/{sample}/logs/fcs_foreign_sequences.{sample}.log"
-	container: "docker://ncbi/fcs-gx:0.2.3"
+	container: "docker://ncbi/fcs-gx:0.3.0"
 		
 	shell:
 		"""
