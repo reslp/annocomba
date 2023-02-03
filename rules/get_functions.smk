@@ -40,7 +40,7 @@ rule interproscan:
 	shell:
 		"""
 		# this now expects that data/external/interproscan exists
-		data/external/interproscan/interproscan.sh -cpu {threads} -i {params.protein_batch_file} -o {output.outxml} -f XML -goterms -pa 2>&1 | tee {log}
+		data/external/interproscan/interproscan.sh -cpu {threads} -i {params.protein_batch_file} -o {output.outxml} -f XML,TSV -goterms -pa 2>&1 | tee {log}
 		touch {output.check}
 		"""
 
@@ -61,10 +61,10 @@ rule gather_iprscan:
 		pred_folder = get_contig_prefix
 	shell:
 		"""
-		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc
-		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
-		for f in "{input}"; do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
-		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{sample}_preds/annotate_misc/iprscan.xml
+		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc
+		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
+		for f in "{input}"; do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
+		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
 		touch {output}
 		"""
 rule remote:
