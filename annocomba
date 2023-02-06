@@ -29,11 +29,15 @@ debug = False
 njobs = "10001"
 	
 # read singularity bindpoints
-def get_bindpoints():
+def get_bindpoints(exclude=None):
 	bp_string = ""
 	with open(".bindpoints", "r") as bpfile:
 		for line in bpfile:
-			bp_string = bp_string + "-B " + line.rstrip() + " "
+			if exclude and exclude in line:
+				print(now(), "Bindpoint", line, "will be excluded.")
+			else:	
+				bp_string = bp_string + "-B " + line.rstrip() + " "
+			
 	#bp_string += "'"
 	return bp_string
 
@@ -82,12 +86,12 @@ def get_additional_snakemake_flags(flags, rerun):
 	else:
 		return []
 
-def get_additional_singularity_flags(flags):
+def get_additional_singularity_flags(flags, exclude_bindpoint=None):
 	if flags:
 		print(now(), "INFO: Additional flags will be passed on to singularity: ", flags)
-		return ["--singularity-args"]+[get_bindpoints() +" " + flags]
+		return ["--singularity-args"]+[get_bindpoints(exclude_bindpoint) +" " + flags]
 	else:
-		return ["--singularity-args"]+ [get_bindpoints()]
+		return ["--singularity-args"]+ [get_bindpoints(exclude_bindpoint)]
 
 # this function is used to check parts of the config files (yaml and samples).
 def check_config_files(configfilepath):
@@ -266,7 +270,7 @@ if args.command == "setup":
 	cmd += get_flags(vars(setup_args), debug)
 	cmd += determine_submission_mode(setup_args.cluster, njobs)
 	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun)
-	cmd += get_additional_singularity_flags(setup_args.si_args)
+	cmd += get_additional_singularity_flags(setup_args.si_args, exclude_bindpoint="RepeatMasker")
 
 	for line in execute_command(cmd, setup_args.verbose):
 		print(line, end="\r")
@@ -453,6 +457,17 @@ elif args.command == "util":
 			print('\033[92m', "OK", '\033[0m')
 		else:	
 			print('\033[91m', "ERROR", '\033[0m', "(did you run: annocomba setup --ncbi-check ?)")
+elif args.command == "report":
+	print(now(), "Welcome to annocomba report v%s" % version)
+	#anno_parser = AnnoParser(usage=help_message(annotate_help), add_help=False)
+	#anno_parser.add_argument("--interproscan", action="store_true", default=False)
+	#anno_parser.add_argument("--funannotate-remote", dest="funannotate_remote", action="store_true", default=False)
+	rcommand = """ rmarkdown::render('./bin/report.Rmd') """
+	cmd = ["singularity", "exec", "-B", os.getcwd(),  "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
+	for line in execute_command(cmd, True):
+		print(line, end="\r")
+	if debug:
+		print(now(),"DEBUG:", " ".join(cmd))
 				
 else:
-	print("Runmode not recognized")
+	print("Runmode not recognized:", args.command)
