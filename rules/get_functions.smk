@@ -109,7 +109,7 @@ rule eggnog:
 	shell:
 		"""
 		cd results/{params.sample}/FUNANNOTATE
-		emapper.py  -i {params.pred_folder}_preds/predict_results/{params.sample}.proteins.fa --output {params.pred_folder}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond >& ../../../{log}
+		emapper.py  -i {params.sample}_preds/predict_results/{params.sample}.proteins.fa --output {params.sample}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond >& ../../../{log}
 		touch ../../../{output}
 		"""
 

@@ -205,7 +205,7 @@ if args.command == "setup":
 		if not setup_args.dry:
 			with open(setup_args.configf, 'r') as file:
 				config_entries = yaml.safe_load(file)
-				add_bindpoint(config_entries["eggnog_database_path"])
+				add_bindpoint(config_entries["eggnog_database_path"]+":/data/eggnogdb")
 		cmd.append("setup_eggnog")
 	if setup_args.genemark or setup_args.all:
 		print(now(), "Preparing setup of Genemark")
