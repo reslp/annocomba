@@ -1,0 +1,303 @@
+---
+title: annocomba           
+output: 
+    html_document:
+        toc: TRUE
+        toc_float: TRUE
+        toc_side: left
+---
+
+```{css toc-content, echo = FALSE}
+#TOC {
+  left: 100px;
+  margin: 20px 0px 25px 0px;
+}
+.main-container {
+    margin-right: 100px;
+}
+div.main-container {
+  max-width: 100%;
+}
+```
+
+## {.tabset .tabset-fade}
+
+```{r setup, echo=FALSE, message=FALSE}
+#library(kableExtra)
+#library(formattable)
+#library(dplyr)
+library(knitr)
+library(ggplot2)
+#library(viridis)
+#library(readr)
+#library(plotly)
+#library(stringr)
+#library(data.table)
+#library(ggpubr)
+library(gridExtra)
+#library(RColorBrewer)
+#library(DT)
+library(reticulate)
+use_condaenv(condaenv="base", conda = "/usr/local/reticulateminiconda/bin/conda")
+```
+
+```{python, echo=FALSE, message=FALSE}
+import os
+import pandas as pd
+samples = []
+wd = "/cl_tmp/reslph/projects/annocomba-monos/"
+
+
+input_data = pd.read_csv("../data/data.combined.tsv", sep="\t")
+samples = input_data["sample"].to_list()#[0:8]
+samples = ["Cichlidogyrus_casuarinus", "Cichlidogyrus_casuarinus2"]
+
+# some modes are still missing here:
+checkpoint_files = {"fcsa": "checkpoints/SAMPLE/clean.ok", "fcsf": "checkpoints/SAMPLE/clean.ok", "repmas": "checkpoints/SAMPLE/repeatmasking.status.ok", "MP1": "checkpoints/SAMPLE/merge_MAKER_PASS1.ok", "MP2": "checkpoints/SAMPLE/merge_MAKER_PASS2.ok", "funpred": "checkpoints/SAMPLE/FUNANNOTATE_predict.done", "ipr": "checkpoints/SAMPLE/aggregate_INTERPROSCAN.done"}
+
+runinfo = {}
+runinfo_detailed = {}
+for sample in samples:
+	info = []
+	for mode in checkpoint_files.keys():
+		if os.path.exists(wd + checkpoint_files[mode].replace("SAMPLE", sample)):
+			info.append("done")
+		else:
+			info.append(" ")
+	runinfo[sample] = info
+
+overview = pd.DataFrame.from_dict(runinfo, orient="index", columns = checkpoint_files.keys())
+print(overview.dtypes)
+```
+
+# Overview
+
+```{R overview, echo=F, message=F, layout="l-body-outset"}
+kable(py$overview)
+```
+
+
+```{python, echo=F, message=F}
+import glob
+import re
+rundat = {}
+for sample in samples:
+	fcsadat = ""
+	rundat[sample]	= {}
+	for mode in list(overview.columns.values):
+		if overview.loc[sample][mode] == "done":
+			if mode == "fcsa":
+				fcsadat = pd.read_csv(wd + "/results/" + sample + "/ASSEMBLY_CLEANUP/FCS-ADAPTOR/fcs_adaptor_report.txt", sep="\t")
+				rundat[sample][mode] = fcsadat
+			if mode == "fcsf":
+				path = glob.glob(wd + "/results/" + sample + "/ASSEMBLY_CLEANUP/FCS-FOREIGNSEQS/" + sample + "*.fcs_gx_report.txt")[0]
+				if os.path.exists(path):
+					try:
+						fcsfdat = pd.read_csv(path, sep="\t", comment="#", names=["seq_id","start_pos","end_pos","seq_len","action","div","agg_cont_cov","top_tax_name"], dtype=str)
+						
+					except pd.errors.EmptyDataError:
+						fcsfdat = pd.DataFrame(names=["seq_id","start_pos","end_pos","seq_len","action","div","agg_cont_cov","top_tax_name"], dtype=str)
+				else:
+					fcsfdat = pd.DataFrame(names=["seq_id","start_pos","end_pos","seq_len","action","div","agg_cont_cov","top_tax_name"], dtype=str)
+				rundat[sample][mode] = fcsfdat
+			if mode == "repmas":
+				path = glob.glob(wd + "/results/" + sample + "/REPEATMASKER/full/" + sample + "*.tbl")[0]
+				print(path)
+				repmas_full = "" 
+				with open(path, "r") as f:
+					for line in f:
+						repmas_full += line.replace("\n", "  \n")
+				path = glob.glob(wd + "/results/" + sample + "/REPEATMASKER/denovo/" + sample + "*.tbl")[0]
+				repmas_denovo = "" 
+				with open(path, "r") as f:
+					for line in f:
+						repmas_denovo += line.replace("\n", "  \n")
+				rundat[sample][mode] = {"full": repmas_full, "denovo": repmas_denovo}	
+			if mode == "MP1":
+				path = glob.glob(wd + "/results/" + sample + "/MAKER.PASS1/" + sample + ".all.maker.gff")[0]
+				with open(path, "r") as f:
+					scores = {}
+					exons = []
+					for line in f:
+						if "\tmRNA\t" in line:
+							res = re.search("ID=([A-Za-z0-9_-]+);.+;_AED=([0-9\.]+);.+;_eAED=([0-9\.]+)", line)
+							id = res.group(1)
+							aed = float(res.group(2))
+							eaed = float(res.group(3))
+							scores[id] = {"aed": aed, "eaed": eaed}			
+						if "\texon\t" in line:
+							res = re.search("ID=([A-Za-z0-9_-]+)", line)
+							exons.append(res.group(1))
+				# now count exons and add to dict
+				for id in set(exons):	
+					scores[id]["exons"] = exons.count(id)
+					
+				rundat[sample][mode] = pd.DataFrame.from_dict(scores, orient="index", columns = ["aed", "eaed", "exons"])	
+			if mode == "MP2":
+				path = glob.glob(wd + "/results/" + sample + "/MAKER.PASS2/" + sample + ".all.maker.gff")[0]
+				with open(path, "r") as f:
+					scores = {}
+					exons = []
+					for line in f:
+						if "\tmRNA\t" in line:
+							#res = re.search("ID=([A-Za-z0-9_-]+);.+;_AED=([0-9\.]+);.+;_eAED=([0-9\.]+)", line)
+							#id = res.group(1)
+							#aed = float(res.group(2))
+							#eaed = float(res.group(3))
+							id = line.split("\tID=")[1].split(";")[0]
+							aed = float(line.split(";_AED=")[1].split(";")[0])
+							eaed = float(line.split(";_eAED=")[1].split(";")[0])
+							scores[id] = {"aed": aed, "eaed": eaed}			
+						if "\texon\t" in line:
+							id = line.split("\tID=")[1].split(":")[0]
+							#res = re.search("ID=([A-Za-z0-9_-]+)", line)
+							exons.append(id)
+					# now count exons and add to dict
+					for id in set(exons):	
+						scores[id]["exons"] = exons.count(id)
+					
+					rundat[sample][mode] = pd.DataFrame.from_dict(scores, orient="index", columns = ["aed", "eaed", "exons"])	
+
+			if mode == "funpred":
+				path = glob.glob(wd + "/results/" + sample + "/FUNANNOTATE/" + sample + "_preds/predict_results/" + sample + ".gff3")[0]
+				with open(path, "r") as f:
+					exons = []
+					scores = {}
+					for line in f:
+						if "\texon\t" in line:
+							id = line.split("ID=")[1].split(";")[0].split(".exon")[0]
+							exons.append(id)
+					# now count exons and add to dict
+					for id in set(exons):	
+						scores[id] = {"exons": exons.count(id)}
+					
+					rundat[sample][mode] = pd.DataFrame.from_dict(scores, orient="index", columns = ["exons"])	
+
+			if mode == "ipr":
+				path = glob.glob(wd + "/results/" + sample + "/INTERPROSCAN/" + sample + "_interproscan.tsv")[0]
+				with open(path, "r") as f:
+					genes = []
+					annotations = []
+					for line in f:
+						genes.append(line.split("\t")[0])
+						annotations.append(line.split("\t")[3])
+					annotations_per_gene = {}
+					annotations_per_category = {}
+					for gene in set(genes):
+						annotations_per_gene[gene] = genes.count(gene)
+					for cat in set(annotations):
+						annotations_per_category[cat] = annotations.count(cat)
+					print(annotations_per_category)
+					rundat[sample][mode] = {"genes": pd.DataFrame.from_dict(annotations_per_gene, orient="index", columns = ["count"]), "categories": pd.DataFrame.from_dict(annotations_per_category, orient="index", columns = ["count"])}
+```
+
+```{R, echo=F, message=F, results="asis"}
+
+blank_theme <- theme_minimal()+
+  theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.border = element_blank(),
+  panel.grid=element_blank(),
+  axis.ticks = element_blank(),
+  plot.title=element_text(size=14, face="bold")
+  )
+
+for (sample in py$samples) {
+	cat("#", sample,"\n")
+	#print(py$rundat[[sample]]$fcsf)
+	cat("### ASSEMBLY CLEANUP\n")
+	if (!is.null(py$rundat[[sample]]$fcsa)) {
+		cat("#### FCS-ADAPTOR\n")
+		dat <- py_to_r(py$rundat[[sample]]$fcsa)
+		cat("<details><summary>Full FCS-ADAPTOR results table</summary>\n")
+		print(kable(dat))
+		cat("</details>\n")
+		cat("\n\n")
+	}
+	if (!is.null(py$rundat[[sample]]$fcsf)) {
+		cat("#### FCS-FOREIGNSEQS\n")
+		dat <- py_to_r(py$rundat[[sample]]$fcsf)
+		cat("<details><summary>Full FCS-GX results table</summary>\n")
+		print(kable(dat))
+		cat("</details>\n")
+		names <- names(table(dat$top_tax_name))
+		vals <- as.numeric(table(dat$top_tax_name))
+		taxdata <- data.frame(names=names, vals=vals)
+		taxdata <- taxdata[order(taxdata$vals,decreasing=TRUE),]
+		if (nrow(taxdata) >= 10) {
+			othersum <- sum(tail(taxdata, n=nrow(taxdata)-9)$vals)
+			taxdata <- head(taxdata, n=9)
+			df <- data.frame("other", othersum)
+			names(df) <- c("names", "vals")
+			taxdata <- rbind(taxdata, df)
+		} 
+		if (is.vector(taxdata) == FALSE) {
+			bp<- ggplot(taxdata, aes(x="", y=vals, fill=names)) + geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0) + blank_theme + theme(axis.text.x=element_blank()) + scale_fill_brewer(palette="Paired") + ggtitle("The ten most common contaminations detected by FCS-GX")
+			print(bp)
+		}
+		cat("\n\n")
+	}
+	cat("### REPEATS\n\n")
+	if (!is.null(py$rundat[[sample]]$repmas)) {
+		cat("<details><summary>Repeatmasker summary - full</summary>\n")
+		print("<pre><code>")
+		cat(py$rundat[[sample]]$repmas$full)
+		print("</code></pre>")
+		cat("</details>\n")
+
+		cat("<details><summary>Repeatmasker summary - denovo</summary>\n")
+		print("<pre><code>")
+		cat(py$rundat[[sample]]$repmas$denovo)
+		print("</code></pre>")
+		cat("</details>\n")
+	}
+	cat("### MAKER PASS1\n\n")
+	if (!is.null(py$rundat[[sample]]$MP1)) {	
+	df <- py_to_r(py$rundat[[sample]]$MP1)
+	cat("Total number of predicted genes:", nrow(df), "\n\n")
+	aedhist <- ggplot(df, aes(aed)) + geom_histogram() + theme_minimal() + xlab("AED score") + ylab("Number of genes") + ggtitle("Histogram of AED scores")
+	eaedhist <- ggplot(df, aes(eaed)) + geom_histogram() + theme_minimal() + xlab("eAED score") + ylab("Number of genes") + ggtitle("Histogram of eAED scores")
+	grid.arrange(aedhist, eaedhist, nrow=1, ncol=2)
+	exonshist <- ggplot(df, aes(exons)) + geom_histogram(binwidth=1) + theme_minimal() + xlab("Exons per gene") + ylab("Number of genes") + ggtitle("Exons per gene")
+	print(exonshist)
+	#print(kable(df))
+	}
+	cat("\n\n### MAKER PASS2\n\n")
+	if (!is.null(py$rundat[[sample]]$MP2)) {	
+	df <- py_to_r(py$rundat[[sample]]$MP2)
+	cat("Total number of predicted genes:", nrow(df), "\n\n")
+	aedhist <- ggplot(df, aes(aed)) + geom_histogram() + theme_minimal() + xlab("AED score") + ylab("Number of genes") + ggtitle("Histogram of AED scores")
+	eaedhist <- ggplot(df, aes(eaed)) + geom_histogram() + theme_minimal() + xlab("eAED score") + ylab("Number of genes") + ggtitle("Histogram of eAED scores")
+	grid.arrange(aedhist, eaedhist, nrow=1, ncol=2)
+	exonshist <- ggplot(df, aes(exons)) + geom_histogram(binwidth=1) + theme_minimal() + xlab("Exons per gene") + ylab("Number of genes") + ggtitle("Exons per gene")
+	print(exonshist)
+	#print(kable(df))
+	}
+	cat("\n\n### FUNANNOTATE PREDICT\n\n")
+	if (!is.null(py$rundat[[sample]]$funpred)) {	
+	df <- py_to_r(py$rundat[[sample]]$funpred)
+	cat("Total number of predicted genes:", nrow(df), "\n\n")
+	exonshist <- ggplot(df, aes(exons)) + geom_histogram(binwidth=1) + theme_minimal() + xlab("Exons per gene") + ylab("Number of genes") + ggtitle("Exons per gene")
+	print(exonshist)
+	#print(kable(df))
+	}
+	cat("\n\n")
+	cat("\n\n### Functional annotations")
+	if (!is.null(py$rundat[[sample]]$ipr)) {
+	cat("\n\n#### INTERPROSCAN\n")
+	df <- py_to_r(py$rundat[[sample]]$ipr$genes)
+	cat("Genes with at least one annotation:", nrow(df), "\n\n")
+	annotationhist <- ggplot(df, aes(count)) + geom_histogram(binwidth=10) + theme_minimal() + xlab("annotations per gene") + ylab("Number of annotations") + ggtitle("Annotations per gene")
+	df <- py_to_r(py$rundat[[sample]]$ipr$categories)
+	df$category <- rownames(df)
+	categoryhist <- ggplot(df, aes(x=category, y=count)) + geom_bar(stat="identity") + theme_minimal() + xlab("annotation category") + ylab("Number of annotations") + ggtitle("Annotations per category") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+	grid.arrange(annotationhist, categoryhist, nrow=1, ncol=2)
+	cat("\n\n")
+	}
+
+}
+
+```
+
+
