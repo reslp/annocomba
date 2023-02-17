@@ -6,7 +6,6 @@ __default__:
    qos: hpc
    mem: "4G"
    time: "00:10:00"
-   exclude: "IT010100,IT010101,IT010102,IT010103,IT010104,IT010105,IT010106,IT010107,IT010108,IT010109,IT010110,IT010111,IT010112,IT010113,IT010114,IT010115"
    output: $(pwd)/log/cluster-logs/%x-%j.stdout.txt
    error: $(pwd)/log/cluster-logs/%x-%j.stderr.txt
 funannotate_clean:
@@ -52,10 +51,12 @@ eggnog:
    job-name: egg
    hint: multithread
    mem: 92G
+   time: "48:00:00"
 get_functions:
    job-name: getfun
 annotate:
    job-name: anno
+   time: "24:00:00"
    hint: multithread
    mem: 94G
 compare:
@@ -118,7 +119,7 @@ run_MAKER_PASS1:
    job-name: rMP1
    hint: multithread
    mem: 16G
-   time: "10:00:00"
+   time: "20:00:00"
 cleanup_MAKER_PASS1:
    job-name: cMP1
    mem: 4G
@@ -159,7 +160,14 @@ interproscan:
    job-name: ipr
    mem: 32G
    time: "10:00:00"
+aggregate_funannotate_predict:
+   jobname: aggfpr
+   time: "00:05:00"
 all:
    job-name: all
    mem: 4G
    time: "01:00:00"
+gather_iprscan:
+   job-name: gaipr
+   mem: 8G
+   time: "02:00:00"
