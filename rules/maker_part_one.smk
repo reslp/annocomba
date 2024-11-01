@@ -72,17 +72,38 @@ rule split:
 		cd {params.wd}
 		touch {output.checkpoint}
 		"""
-		
+
+rule download_busco_set:
+	output:
+		busco_set = directory("databases/busco/"+config["busco_set"]),
+	params:
+		set = config["busco_set"],
+	log:
+		"log/setup/download_busco_set.log"
+	shell:
+		"""
+		echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
+		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
+		mkdir {output.busco_set}
+
+		base_url="https://busco-data.ezlab.org/v5/data/lineages"
+		current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
+		echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
+		echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
+		wget -q -c $base_url/$current -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
+
+		echo -ne "[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
+		"""
 rule busco:
 	input:
-		fasta = rules.sort.output.assembly
+		fasta = rules.sort.output.assembly,
+		busco_set = rules.download_busco_set.output
 	params:
 		prefix = "{sample}",
-		busco_path = "data/funannotate_database",
-		busco_set = config["busco_set"],
 		augustus_species = config["busco_species"],
+		augustus_config_in_container = "/usr/local/config",
+		busco_set = config["busco_set"],
 		wd = os.getcwd(),
-		busco_tblastn_single_core = config["busco_tblastn_single_core"]
 	threads: config["threads"]["busco"]
 	singularity:
 		config["containers"]["busco"]
@@ -90,16 +111,17 @@ rule busco:
 		stdout = "results/{sample}/logs/BUSCO.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/BUSCO.{sample}.stderr.txt"
 	output:
-		buscos = "results/{sample}/BUSCO/run_{sample}/single_copy_busco_sequences/{sample}.BUSCOs.fasta",
+		buscos = "results/{sample}/BUSCO/{sample}.BUSCOs.fasta",
 		ok = "checkpoints/{sample}/busco.status.ok"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 
-		if [[ ! -d results/{params.prefix}/BUSCO ]]
+		if [[ -d results/{params.prefix}/BUSCO ]]
 		then
-			mkdir results/{params.prefix}/BUSCO
+			rm -rf results/{params.prefix}/BUSCO
 		fi
+		mkdir results/{params.prefix}/BUSCO
 		cd results/{params.prefix}/BUSCO
 
 		if [[ ! -d tmp ]]
@@ -107,23 +129,24 @@ rule busco:
 			mkdir tmp
 		fi
 
-		cp -rf /opt/conda/config tmp/config
-		AUGUSTUS_CONFIG_PATH=$(pwd)/tmp/config
+		cp -rf {params.augustus_config_in_container} tmp/config
+		#cp -rf /opt/conda/config tmp/config
+		export AUGUSTUS_CONFIG_PATH=$(pwd)/tmp/config
 
-		#check if tblastn single core flag is set:
-		if [[ "{params.busco_tblastn_single_core}" == "yes" ]]; then
-			SCF="--blast_single_core"
+		if [[ {params.augustus_species} == "auto" ]] || [[ {params.augustus_species} == "None" ]]
+		then
+			aug_sp=""
 		else
-			SCF=""
+			aug_sp="--augustus_species {params.augustus_species}"
 		fi
 
 		#run BUSCO
-		run_BUSCO.py \
-		--in ../../../{input.fasta} --out {params.prefix} -l ../../../{params.busco_path}/{params.busco_set} --mode genome -c {threads} -f \
-		-sp {params.augustus_species} --long --augustus_parameters='--progress=true' $SCF 1> ../../../{log.stdout} 2> ../../../{log.stderr}
-
+		busco -i ../../../{input.fasta} -f --out {params.prefix} -c {threads} --mode genome --lineage_dataset {params.wd}/{input.busco_set} \
+		--augustus --long $aug_sp --augustus_parameters='--progress=true' 1> ../../../{log.stdout} 2> ../../../{log.stderr}
+#		--augustus $aug_sp --augustus_parameters='--progress=true' 1> ../../../{log.stdout} 2> ../../../{log.stderr}
+ 
 		#collect predicted BUSCOs
-		cat run_{params.prefix}/single_copy_busco_sequences/*.faa | sed 's/:.*//' > run_{params.prefix}/single_copy_busco_sequences/{params.prefix}.BUSCOs.fasta
+		cat {params.prefix}/run_{params.busco_set}/busco_sequences/single_copy_busco_sequences/*.faa | sed 's/ .*//' | sed 's/:/|/' > {params.prefix}.BUSCOs.fasta
 
 		echo -e "\n$(date)\tFinished!\n"
 		touch {params.wd}/{output.ok}	
