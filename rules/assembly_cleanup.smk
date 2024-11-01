@@ -29,7 +29,7 @@ def determine_sort_input(wildcards):
 	else:
 		inputfiles.append("results/" + wildcards.sample + "/ASSEMBLY_CLEANUP/" + wildcards.sample + "_cleaned.simple.fas")	
 
-	print("Input files will be: "+str(inputfiles))
+	#print("Input files will be: "+str(inputfiles))
 	return inputfiles
 
 def get_taxid(wildcards):
