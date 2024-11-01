@@ -67,7 +67,7 @@ Arguments:
 	--all			Will do all of the above
 
 Optional arguments:
-	-t, --tmpdir		Use specified directory for temporary files in shadow rules
+	--tmpdir		Use specified directory for temporary files in shadow rules
 
 Additional """ + standard_arguments 
 
