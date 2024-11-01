@@ -6,7 +6,6 @@ from math import ceil
 from pathlib import Path
 from subprocess import call
 
-configfile: "data/config.yaml"
 sample_data = pd.read_table(config["samples"], header=0, keep_default_na=False).set_index("sample", drop=False)
 #sample_data["taxid"] = np.where(pd.isnull(sample_data["taxid"]),sample_data["taxid"],sample_data["taxid"].astype(str))
 print(config)
@@ -82,7 +81,7 @@ def get_contig_prefix(wildcards):
 	return sample_data.loc[wildcards.sample, ["contig_prefix"]].to_list()
 
 def get_premasked_state(wildcards):
-	 sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1]
+	return sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1]
 
 def get_all_samples(wildcards):
 	sam = sample_data["contig_prefix"].tolist()
