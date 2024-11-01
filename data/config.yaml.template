@@ -35,7 +35,7 @@ augustus_training_params:
 busco_set: "metazoa_odb10" # The BUSCO set is used in the initial BUSCO run
 busco_species: "auto"
 busco_tblastn_single_core: "no"
-est_evidence_path: data/transcripts
+est_evidence_path: data/transcripts # this is the default to look for transcriptome evidence; in addition more sample specific directories can be specified in the data file
 protein_evidence_path: data/protein_evidence
 
 augustus:
@@ -47,9 +47,8 @@ maker:
     maker_pass_2_options: "-fix_nucleotides"
 
 genemark:
-    genemark_dir: data/external/gmes_linux_64_4
     gmes_petap_params: "--min_contig 1000"
-    skip: "yes"
+    skip: #"yes"
 
 
 # List of used containers:
