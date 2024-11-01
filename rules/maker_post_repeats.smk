@@ -2,7 +2,7 @@ from os import path
 
 rule prepare_protein_evidence:
 	input:
-		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob("data/protein_evidence/*.gz")),
+		proteins = expand("{full}/{file}", full=[os.getcwd()], file=glob.glob(config["protein_evidence_path"]+"/*.gz")),
 	params:
 		prefix = "{sample}",
 		mem = "8000",
@@ -51,11 +51,17 @@ rule prepare_protein_evidence:
 		fi
 		echo -e "\n$(date)\tFinished!\n"
 		"""
+def trigger_repeatmasking(wildcards):
+	if sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1] == "yes":
+		return "results/"+wildcards.sample+"/ASSEMBLY_CLEANUP/"+wildcards.sample+"_sorted.fas"
+	else:
+		return "results/"+wildcards.sample+"/REPEATMASKER/"+wildcards.sample+"_sorted.hardmasked.fas"
+
+
 if path.exists("bin/Genemark/gm_key"):
 	rule genemark:
 		input:
-			fasta = rules.mask_repeats.output.hard
-#			fasta = rules.sort.output.assembly
+			fasta = trigger_repeatmasking
 		params:
 			prefix = "{sample}",
 			genemark_dir = "bin/Genemark",
@@ -118,16 +124,43 @@ else:
 			"""
 			touch {output.check}
 			"""
+def trigger_repeatmodeler(wildcards):
+	if sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1] == "yes":
+		return []
+	else:
+		return "results/"+wildcards.sample+"/REPEATMODELER/"+wildcards.sample+"-families.fa"
+def trigger_repeatmasker_denovo(wildcards):
+	if sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1] == "yes":
+		return []
+	else:
+		return "results/"+wildcards.sample+"/REPEATMASKER/denovo/"+wildcards.sample+".denovo.out.reformated.gff"
+def trigger_repeatmasker_full(wildcards):
+	if sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1] == "yes":
+		return []
+	else:
+		return "results/"+wildcards.sample+"/REPEATMASKER/full/"+wildcards.sample+".full.out.reformated.gff"
+def trigger_busco(wildcards):
+	if config["skip_BUSCO"] == "yes":
+		return []
+	else:
+		#this triggers busco
+		return "results/"+wildcards.sample+"/BUSCO/"+wildcards.sample+".BUSCOs.fasta"
+def trigger_cdhit(wildcards):
+	if config["protein_evidence_path"] == "skip":
+		return []
+	else:
+		#this triggers cdhit
+		return "results/"+wildcards.sample+"/NR_PROTEIN_EVIDENCE/nr_external_proteins.cd-hit.fasta"
 
 rule initiate_MAKER_PASS1:
 	input:
 		ok = rules.split.output.checkpoint,
 		snap = rules.snap_pass1.output.hmm,
-		nr_evidence = rules.prepare_protein_evidence.output.nr_proteins,
-		busco_proteins = rules.busco.output.buscos,
-		repmod_lib = rules.repeatmodeler.output.fasta,
-		repmas_gff_denovo = rules.repeatmasker_denovo.output.gff,
-		repmas_gff = rules.repeatmasker.output.gff
+		nr_evidence = trigger_cdhit,
+		busco_proteins = trigger_busco,
+		repmod_lib = trigger_repeatmodeler,
+		repmas_gff_denovo = trigger_repeatmasker_denovo,
+		repmas_gff = trigger_repeatmasker_full
 	params:
 		prefix = "{sample}",
 		transcripts = get_transcripts_path,
@@ -225,15 +258,30 @@ rule run_MAKER_PASS1:
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c $(( {threads} - 1 )) $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
+		echo "\nMAKER is done - merging output files" 1>> $basedir/{log.stdout}
 		cd {params.prefix}.{params.dir}.maker.output
 		gff3_merge -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.all.maker.gff
 		fasta_merge -d {params.prefix}.{params.dir}_master_datastore_index.log
 		gff3_merge -n -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.noseq.maker.gff
 
-		#ln -s $basedir/{params.sub} $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
-		mv {params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
-		mv {params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir}
-	
+		echo "This is what MAKER has produced:" 1>> $basedir/{log.stdout}
+		ls -hlrt 1>> $basedir/{log.stdout}
+
+		echo "Moving things over" 1>> $basedir/{log.stdout}
+		mv -v {params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir} 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
+		mv -v {params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS1/{params.dir} 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
+
+		if [[ ! -f $basedir/{output.transcripts_fasta} ]]
+		then
+			echo "touching {params.prefix}.{params.dir}.all.maker.transcripts.fasta" 1>> $basedir/{log.stdout}
+			touch $basedir/{output.transcripts_fasta}
+		fi
+		if [[ ! -f $basedir/{output.prot_fasta} ]]
+		then
+			echo "touching {params.prefix}.{params.dir}.all.maker.proteins.fasta" 1>> $basedir/{log.stdout}
+			touch $basedir/{output.prot_fasta}
+		fi
+
 		touch $basedir/{output.ok}	
 		echo -e "\n$(date)\tFinished!\n"
 		"""
@@ -289,14 +337,23 @@ rule merge_MAKER_PASS1:
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
+def specify_training_params(wildcards):
+	if config["skip_BUSCO"] == "yes":
+		if config["augustus_training_params"]:
+			return config["augustus_training_params"]
+		else:
+			return "from_scratch"
+	else:
+		return "results/"+wildcards.sample+"/BUSCO/"+wildcards.sample+"/run_"+config["busco_set"]+"/augustus_output/retraining_parameters/BUSCO_"+wildcards.sample
+
 rule AUGUSTUS_PASS2:
 	input:
-		busco_ok = rules.busco.output,
-		fasta = rules.mask_repeats.output.hard,
+		busco_ok = trigger_busco,
+		fasta = trigger_repeatmasking,
 		maker_proteins = rules.merge_MAKER_PASS1.output.proteins
 	params:
 		prefix = "{sample}",
-		training_params = "results/{sample}/BUSCO/run_{sample}/augustus_output/retraining_parameters",
+		training_params = specify_training_params,
 		script = "bin/augustus.PASS2.sh",
 		aed = "{aed}",
 		transcripts = get_transcripts_path, 
@@ -342,6 +399,13 @@ rule AUGUSTUS_PASS2:
 			cat $est > cdna.{params.aed}.fasta	
 		fi
 
+		if [[ "{params.training_params}" == "from_scratch" ]]
+		then
+			training_params="from_scratch"
+		else
+			training_params="$basedir/{params.training_params}"
+		fi
+
 		bash $basedir/{params.script} \
 		{threads} \
 		{params.aed}.{params.prefix} \
@@ -349,7 +413,7 @@ rule AUGUSTUS_PASS2:
 		$basedir/{input.maker_proteins} \
 		{params.aed} \
 		$(pwd)/tmp.{params.aed}/config \
-		$basedir/{params.training_params} \
+		$training_params \
 		cdna.{params.aed}.fasta \
 		'{params.extra_params}' \
 		1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -453,11 +517,17 @@ rule snap_pass2:
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
+def trigger_genemark(wildcards):
+	if config["genemark"]["skip"] == "yes":
+		return []
+	else:
+		return "checkpoints/"+wildcards.sample+"/genemark.status.ok"
+
 rule initiate_MAKER_PASS2:
 	input:
 		snaphmm = rules.snap_pass2.output.snap_hmm,
 		MP1_ok = rules.merge_MAKER_PASS1.output,
-		genemark = rules.genemark.output.check
+		genemark = trigger_genemark
 	params:
 		prefix = "{sample}",
 		script = "bin/prepare_maker_opts_PASS2.sh",
@@ -502,7 +572,7 @@ rule initiate_MAKER_PASS2:
 		##### Modify maker_opts.ctl file
 		bash $basedir/{params.script} \
 		$basedir/{input.snaphmm} \
-		$(if [ -s "$basedir/results/{params.prefix}/GENEMARK/gmhmm.mod" ]; then echo "$basedir/results/{params.prefix}/GENEMARK/gmhmm.mod"; else echo "none"; fi) \
+		$(if [ -f "$basedir/{input.genemark}" ]; then echo "$basedir/results/{params.prefix}/GENEMARK/gmhmm.mod"; else echo "none"; fi) \
 		$aed.{params.prefix} \
 		$basedir/{params.params} \
 		$basedir/{params.pred_gff} \
@@ -572,14 +642,30 @@ rule run_MAKER_PASS2:
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c {threads} $basedir/results/{params.prefix}/MAKER.PASS2/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS2/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
 
 		#prepare data from MAKER 
+		echo "\nMAKER is done - merging output files" 1>> $basedir/{log.stdout}
 		cd {params.prefix}.{params.dir}.maker.output
 		gff3_merge -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.all.maker.gff
 		fasta_merge -d {params.prefix}.{params.dir}_master_datastore_index.log
 		gff3_merge -n -d {params.prefix}.{params.dir}_master_datastore_index.log -o {params.prefix}.{params.dir}.noseq.maker.gff
+		
+		echo "This is what MAKER has produced:" 1>> $basedir/{log.stdout}
+		ls -hlrt 1>> $basedir/{log.stdout}
 		cd ..
 
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir}
-		mv {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir}
+		echo "Moving things over" 1>> $basedir/{log.stdout}
+		mv -v {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.all.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir} 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
+		mv -v {params.prefix}.{params.dir}.maker.output/{params.prefix}.{params.dir}.noseq.maker.* $basedir/results/{params.prefix}/MAKER.PASS2/{params.dir} 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr}
+	
+		if [[ ! -f $basedir/{output.transcripts_fasta} ]]
+		then
+			echo "touching {params.prefix}.{params.dir}.all.maker.transcripts.fasta" 1>> $basedir/{log.stdout}
+			touch $basedir/{output.transcripts_fasta}
+		fi
+		if [[ ! -f $basedir/{output.prot_fasta} ]]
+		then
+			echo "touching {params.prefix}.{params.dir}.all.maker.proteins.fasta" 1>> $basedir/{log.stdout}
+			touch $basedir/{output.prot_fasta}
+		fi
 		
 		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
