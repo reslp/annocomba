@@ -13,7 +13,7 @@ rule predict:
 		organism = config["predict"]["organism"],
 		busco_seed_species = config["busco_species"],
 		ploidy = config["predict"]["ploidy"],
-		busco_db = config["busco_set"],
+		busco_db = config["funannotate_busco_set"],
 		maker_weight= config["predict"]["maker_weight"],
 		transcripts = get_transcripts_path,
 		optional = config["predict"]["additional_params"],
@@ -34,23 +34,23 @@ rule predict:
 		export PATH=$PATH:/usr/local/SignalP
 
 		if [[ -f checkpoints/{params.sample_name}/merge_MAKER_PASS2.ok ]]; then # this case assumes maker was run before in which case some parameters will be recycled.
-			if [ -d /data/database/trained_species/maker{params.folder} ]; then rm -rf /data/database/trained_species/maker{params.folder}; fi
-			mkdir -p /data/database/trained_species/maker{params.folder}/augustus
+			if [ -d /data/database/trained_species/maker_{params.folder} ]; then rm -rf /data/database/trained_species/maker_{params.folder}; fi
+			mkdir -p /data/database/trained_species/maker_{params.folder}/augustus
 
 			#these are the parameters after MAKER
-			cp results/{params.folder}/AUGUSTUS.PASS2/training_params/* /data/database/trained_species/maker{params.folder}/augustus/
+			cp results/{params.folder}/AUGUSTUS.PASS2/training_params/* /data/database/trained_species/maker_{params.folder}/augustus/
 
-			cd /data/database/trained_species/maker{params.folder}
+			cd /data/database/trained_species/maker_{params.folder}
 			#get a json file as template from some random species. Wouldn't have to be Schistosoma
 			cp ../schistosoma/info.json .
-			sed -i "s/schistosoma/maker{params.folder}/" info.json
+			sed -i "s/schistosoma/maker_{params.folder}/" info.json
 			cd -
-			cd /data/database/trained_species/maker{params.folder}/augustus
+			cd /data/database/trained_species/maker_{params.folder}/augustus
 
 			base=$(ls *_weightmatrix.txt | sed 's/_weightmatrix.txt//')
 			echo -e "renaming all files"
-			for f in $(ls -1 ); do mv $f $(echo $f | sed "s/^$base/maker{params.folder}/"); done
-			for f in $(ls -1 *parameters.cfg*); do echo -e "fixing $f - replacing '$base' with 'maker{params.folder}'"; sed -i "s/$base/maker{params.folder}/g" $f; done
+			for f in $(ls -1 ); do mv $f $(echo $f | sed "s/^$base/maker_{params.folder}/"); done
+			for f in $(ls -1 *parameters.cfg*); do echo -e "fixing $f - replacing '$base' with 'maker_{params.folder}'"; sed -i "s/$base/maker_{params.folder}/g" $f; done
 			cd -
 			cd results/{params.folder}/FUNANNOTATE
 
@@ -62,8 +62,8 @@ rule predict:
 			#specify new AUGUSTUS_CONFIG
 			#export PATH=/usr/share/augustus/scripts:$PATH
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/AUGUSTUS/config/
-			mkdir $AUGUSTUS_CONFIG_PATH/species/maker{params.folder}
-			cp -p /data/database/trained_species/maker{params.folder}/augustus/* $AUGUSTUS_CONFIG_PATH/species/maker{params.folder}/
+			mkdir $AUGUSTUS_CONFIG_PATH/species/maker_{params.folder}
+			cp -p /data/database/trained_species/maker_{params.folder}/augustus/* $AUGUSTUS_CONFIG_PATH/species/maker_{params.folder}/
 		fi
 
 		## add some echos to know what is going on
@@ -78,10 +78,12 @@ rule predict:
 		echo "{params.transcripts[ests]}"
 		if [[ -f "{params.transcripts[ests]}" ]]; then
 			echo "Transcript evidence detected. Will use in funannotate predict"
+		else
+			echo "No transcript evidence detected."
 		fi
 
 		funannotate predict -i {params.wd}/{input.assembly} -o {params.sample_name}_preds -s {params.sample_name} --name {params.pred_folder}_pred \
-		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species maker{params.folder} \
+		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species maker_{params.folder} \
 		--ploidy {params.ploidy} \
 		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta $(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta ]]; then echo -e "{params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.proteins.fasta"; fi) \
 		$(if [[ -f {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff ]]; then echo -e "--other_gff {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff:{params.maker_weight}"; fi) \
