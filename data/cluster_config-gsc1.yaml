@@ -3,11 +3,15 @@ __default__:
    ntasks: 1
    cpus-per-task: 1
    hint: multithread
-   qos: hpc
+   partition: hpc
    mem: "4G"
    time: "00:10:00"
    output: $(pwd)/log/cluster-logs/%x-%j.stdout.txt
    error: $(pwd)/log/cluster-logs/%x-%j.stderr.txt
+maker_all:
+   job-name: maker-all
+funannotate_predict_all:
+   job-name: fun-pre-all
 funannotate_clean:
    job-name: funclean 
    mem: 32G
@@ -36,7 +40,7 @@ predict:
    job-name: pred
    mem: 94G
    hint: multithread
-   time: "24:00:00"
+   time: "72:00:00"
 tarpredict:
    job-name: tarpred
    time: "24:00:00"
@@ -83,26 +87,26 @@ repeatmodeler:
    job-name: repmod
    hint: multithread
    mem: 20G
-   time: "48:00:00"
+   time: "20-00:00:00"
 repeatmasker_denovo:
    job-name: repmad
    hint: multithread
    mem: 20G
-   time: "48:00:00"
+   time: "96:00:00"
 repeatmasker:
    job-name: repmas
    hint: multithread
    mem: 20G
-   time: "48:00:00"
+   time: "96:00:00"
 mask_repeats:
    job-name: masrep
    mem: 4G
-   time: "00:20:00"
+   time: "02:00:00"
 genemark:
    job-name: genemark
    hint: multithread
    mem: 20G
-   time: "24:00:00"
+   time: "72:00:00"
 snap_pass1:
    job-name: snap1
    mem: 4G
@@ -114,12 +118,12 @@ prepare_protein_evidence:
    time: "01:00:00"
 initiate_MAKER_PASS1:
    job-name: iMP1
-   time: "70:30:00"
+   time: "01:00:00"
 run_MAKER_PASS1:
    job-name: rMP1
    hint: multithread
    mem: 16G
-   time: "20:00:00"
+   time: "70:00:00"
 cleanup_MAKER_PASS1:
    job-name: cMP1
    mem: 4G
@@ -127,7 +131,7 @@ cleanup_MAKER_PASS1:
 merge_MAKER_PASS1:
    job-name: mMP1
    mem: 4G
-   time: "01:00:00"
+   time: "10:00:00"
 snap_pass2:
    job-name: SNA2
    mem: 4G
@@ -139,10 +143,10 @@ AUGUSTUS_PASS2:
    time: "40:00:00"
 pick_augustus_training_set:
    job-name: PAM
-   time: "00:01:00"
+   time: "00:10:00"
 initiate_MAKER_PASS2:
    job-name: iMP2
-   time: "00:01:00"
+   time: "01:00:00"
 run_MAKER_PASS2:
    job-name: rMP2
    hint: multithread
