@@ -19,7 +19,7 @@ eggnog_database: "NOG" # usually this does not need to be changed.
 ###### end of SETUP settings
 
 # general settings:
-samples: "data/data.csv"
+samples: "data/data.tsv"
 #samples: "data/data-funannotate.test.csv"
 assembly_cleanup:
     minlen: 1000

@@ -1,0 +1,4 @@
+sample	assembly_path	gene_prefix	contig_prefix	premasked	batches	est_type	est_path
+Gehypochthonius_rhadamanthus	data/assemblies/DOri101_scaffolds.fasta	geh_rha_pred	geh_rah	no	100	species	data/transcripts/geh_rah
+Beklemishevia_galeodula	data/assemblies/Bg1051_scaffolds.fasta	bek_gal_pred	bek_gal	no	100	other	data/transcripts/other
+Canestrinia_pentodontis	data/assemblies/Cp541_scaffolds.fasta	can_pen_pred	can_pen	no	100	other,species	data/transcripts/other,data/transcripts/can_pen
