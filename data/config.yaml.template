@@ -1,14 +1,42 @@
-samples: "data/data.csv"
-maker_tarball: data/external/maker-2.31.10.tgz
-RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz 
-funannotate_databases: all
-iprscan: /gpfs/data/fs71720/hahnc_ori/WORKFLOWS/annocomba/data/external/interproscan-5.48-83.0/interproscan.sh
-genbank_template: data/genbank_template.txt
 
-# The BUSCO set is used in funannotate predict and annotate. It will be downloaded during annocomba --setup
-busco_set: "metazoa"
-busco_species: "schistosoma"
+####### SETUP:
+# You need to provide paths to the following programs: 
+maker_tarball: data/external/maker-2.31.10.tgz
+genemark_tarball: data/external/gmes_linux_64_4.tar.gz
+genemark_keyfile: data/external/gm_key_64.gz
+signalp_tarball: data/external/signalp-4.1g.Linux.tar.gz
+RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
+iprscan: /gpfs/data/fs71312/reslp/databases/interproscan-5.48-83.0
+eggnog_database_path: ../../../../../software/BioSW/eggnogdb
+signalp_dir: data/external/signalp-4.1
+
+# You may change the values below before you run setup:
+funannotate_databases: all # usually this does not need to be changed.
+funannotate_busco_set: "arthropoda" # The BUSCO set is used in funannotate predict and annotate.
+genbank_template: data/genbank_template.txt # Make sure get your own file from NCBI.
+eggnog_database: "NOG" # usually this does not need to be changed.
+
+###### end of SETUP settings
+
+# general settings:
+samples: "data/data.csv"
+#samples: "data/data-funannotate.test.csv"
+assembly_cleanup:
+    minlen: 1000
+    percent_ns: 95
+    run_funannotate_clean: False
+    run_ncbi_adaptor_screen: False
+    run_ncbi_foreign_sequences_screen: False
+    contaminant_database: ""
+    ncbi_foreign_sequences_parameters: ""
+
+skip_BUSCO: 
+augustus_training_params: 
+busco_set: "arthropoda_odb10" # The BUSCO set is used in the initial BUSCO run
+busco_species: "auto"
 busco_tblastn_single_core: "no"
+est_evidence_path: data/transcripts
+protein_evidence_path: data/protein_evidence
 
 augustus:
     train_augustus_options: "--optrounds 1" 
@@ -19,22 +47,18 @@ maker:
     maker_pass_2_options: "-fix_nucleotides"
 
 genemark:
-    genemark_dir: data/external/gmes_linux_64
-    gmes_petap_params:
+    genemark_dir: data/external/gmes_linux_64_4
+    gmes_petap_params: "--min_contig 1000"
+    skip: "yes"
 
-signalp_dir: data/external/signalp-4.1
-
-#which eggnogg database to setup
-eggnog_database: "NOG"
 
 # List of used containers:
 containers:
-    funannotate_setup: docker://reslp/funannotate:git_clone
-    funannotate: docker://reslp/funannotate:1.8.7-GM
+    funannotate: docker://reslp/funannotate:1.8.13_3
     eggnog_mapper: docker://reslp/eggnog-mapper:1.0.3
     repeatmodeler: docker://reslp/repeatmodeler-repeatmasker:2.0.3-4.1.3
     premaker: docker://chrishah/premaker-plus:18-0d9787e
-    busco: docker://reslp/busco:3.0.2
+    busco: docker://ezlabgva/busco:v5.2.1_cv1
     cegma: docker://chrishah/cegma:2.5
     interproscan: docker://reslp/interproscan-wrapper:5.48-83.0
     augustus: docker://chrishah/augustus:v3.3.2-parallel
@@ -43,7 +67,7 @@ cdhit:
     similarity: "0.98"
 aed:
     snap_pass2: "0.3"
-    AUGUSTUS_PASS2: ["0.1","0.2","0.3","0.4","0.5"]
+    AUGUSTUS_PASS2: ["0.1","0.2","0.3"]
 
 # funannotate specific settings
 clean:
@@ -54,7 +78,7 @@ mask:
     threads: 48
 predict:
     organism: "other"
-    ploidy: 1
+    ploidy: 2
     threads: 48
     maker_weight: 2
     additional_params: "--force"
@@ -77,11 +101,12 @@ compare:
 threads:
     genemark: 16
     busco: 32
-    cegma: 16
-    repeatmodeler: 16
+    cegma: 32
+    repeatmodeler: 24
     repeatmasker: 32
     prepare_protein_evidence: 8
     run_MAKER_PASS1: 8
-    AUGUSTUS_PASS2: 20
+    AUGUSTUS_PASS2: 30
     run_MAKER_PASS2: 8
     interproscan: 90
+    edta: 16
