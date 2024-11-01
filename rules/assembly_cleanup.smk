@@ -28,6 +28,8 @@ def determine_sort_input(wildcards):
 		inputfiles.append("results/" + wildcards.sample + "/ASSEMBLY_CLEANUP/" + wildcards.sample + "_cleaned.funannotate.fas")	
 	else:
 		inputfiles.append("results/" + wildcards.sample + "/ASSEMBLY_CLEANUP/" + wildcards.sample + "_cleaned.simple.fas")	
+
+	print("Input files will be: "+str(inputfiles))
 	return inputfiles
 
 def get_taxid(wildcards):
@@ -175,6 +177,8 @@ rule sort:
 		funannotate sort -i {input.assembly} -o {output.assembly} -b {params.contig_prefix} &> {log}
 		touch {output.ok}
 		"""
+#oneliner to sort by length
+#cat $fasta | perl -ne 'chomp; if ($_=~/>/){print "\n$_\n"}else{print "$_"}' | tail -n +2 | perl -ne 'chomp; $h=$_; $s=<>; chomp $s; print length($s)." $h\n"' | sort -nr
 #else:
 #        rule sort:
 #        	input:
