@@ -183,7 +183,8 @@ if args.command == "setup":
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
-	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--use-singularity", "-r"]
+	check_config_files(setup_args.configf)
+	cmd = ["snakemake", "-s", "rules/setup.Snakefile", "--configfile", setup_args.configf, "--use-singularity", "-r"]
 	if setup_args.funannotate or setup_args.all:
 		print(now(),"Preparing setup of Funannotate")
 		print(now(), "Funannotate database will be placed in data/funannotate_database.")
@@ -303,7 +304,7 @@ elif args.command == "call-genes":
 		print(help_message(cgenes_help))
 		sys.exit(0)
 	check_config_files(anno_args.configf)
-	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--use-singularity" , "-r", "-p"]
+	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--configfile", anno_args.configf, "--use-singularity" , "-r", "-p"]
 	if anno_args.maker and not anno_args.funannotate:
 		cmd.append("maker_all")	
 		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
@@ -347,7 +348,8 @@ elif args.command == "annotate":
 	if anno_args.help or len(sys.argv) <= 2:
 		print(help_message(annotate_help))
 		sys.exit(0)
-	cmd = ["snakemake", "-s", "rules/annocomba.annotate.Snakefile", "--use-singularity" , "-pr"]
+	check_config_files(anno_args.configf)
+	cmd = ["snakemake", "-s", "rules/annocomba.annotate.Snakefile", "--configfile", anno_args.configf, "--use-singularity" , "-r", "-p"]
 	cmd.append("annotate_all")
 	if anno_args.interproscan:
 		#cmd.append("get_functions_interproscan")
