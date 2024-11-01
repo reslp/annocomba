@@ -21,7 +21,11 @@ then
 	if [ -f "$nr_evidence" ]; then echo -e "Protein evidence provided: $nr_evidence"; paths="$paths,$nr_evidence"; fi
 	if [ -f "$busco_proteins" ]; then echo -e "BUSCO proteins provided: $busco_proteins"; paths="$paths,$busco_proteins"; fi
 	paths=$(echo $paths | sed 's/^,//')
-	sed -i "s?protein= ?protein=$paths ?" maker_opts.ctl
+	if [ ! -z "$paths" ]
+	then
+		sed -i "s?^protein= ?protein=$paths ?" maker_opts.ctl
+		sed -i 's/protein2genome=0/protein2genome=1/' maker_opts.ctl
+	fi
 fi
 #add denovo repeat library if present
 if [ -f "$repmod_lib" ]
@@ -32,8 +36,25 @@ fi
 #add repeatmasker gff if present
 if [ ! -z "$repmas_gff" ]
 then
-	echo -e "Repeatmasker gff provided: $repmas_gff"
-	sed -i "s?rm_gff= ?rm_gff=$repmas_gff ?" maker_opts.ctl
+	echo -e "Repeatmasker gff provided: $repmas_gff - checking"
+	outstring=""
+	for f in $(echo $repmas_gff | tr ',' '\n')
+	do
+		if [ -f "$f" ]
+		then
+			echo "$f seems valid"
+			outstring=$outstring,$f
+		else
+			echo "$f not a valid file"
+		fi
+	done
+	outstring=$(echo $outstring | sed 's/^,//')
+	echo "passing on: $outstring"
+	sed -i "s?rm_gff= ?rm_gff=$outstring ?" maker_opts.ctl
+
+	#if repeatmasker gff is passed to maker then the built in RepeatMasker run is skipped
+	echo "I assume you don't want to run Repeatmasker again in Maker and switch it off"
+	sed -i "s?^model_org=all?model_org= " maker_opts.ctl
 fi
 
 if [ ! -z "$alt_est" ]
@@ -49,4 +70,3 @@ then
 
 	sed -i 's/est2genome=0/est2genome=1/' maker_opts.ctl
 fi
-sed -i 's/protein2genome=0/protein2genome=1/' maker_opts.ctl
