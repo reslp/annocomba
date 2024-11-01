@@ -16,24 +16,31 @@ basedir=$(pwd)
 #prepare training parameters from BUSCO
 if [ ! -z $training_params ]
 then
-	echo -e "[$(date)]\tPreparing training set from previous Augustus run"
+	echo -e "[$(date)]\tPreparing training set Augustus"
+	if [[ "$training_params" == "from_scratch" ]]
+	then
+		echo -e "[$(date)]\tStarting from scratch"
+		new_species.pl --species=$prefix 
+	else
+		echo -e "[$(date)]\tResume training from previous BUSCO run ('$training_params')"
 
-	#get local copy of Augustus parameters from previous training round
-	cp -fr $training_params $local_config/species/$prefix
+		#get local copy of Augustus parameters from previous training round
+		cp -fr $training_params $local_config/species/$prefix
 
-	cd $local_config/species/
-	#remove all but the currently relevant models
-	rm -rf $(ls -1 | grep -v "$prefix")
-	#rename files to current prefix
-	cd $prefix
-	base=$(ls *weightmatrix.txt | sed 's/_weightmatrix.txt//')
-	#rename files
-	for file in $(ls -1); do new=$(echo -e "$file" | sed "s/$base/$prefix/g"); mv $file $new; done
-	#rename the files cited within certain HMM configuration files
-	sed -i "s/$base/$prefix/g" $prefix\_parameters.cfg
-	sed -i "s/$base/$prefix/g" $prefix\_parameters.cfg.orig1
+		cd $local_config/species/
+		#remove all but the currently relevant models
+		rm -rf $(ls -1 | grep -v "$prefix")
+		#rename files to current prefix
+		cd $prefix
+		base=$(ls *weightmatrix.txt | sed 's/_weightmatrix.txt//')
+		#rename files
+		for file in $(ls -1); do new=$(echo -e "$file" | sed "s/$base/$prefix/g"); mv $file $new; done
+		#rename the files cited within certain HMM configuration files
+		sed -i "s/$base/$prefix/g" $prefix\_parameters.cfg
+		sed -i "s/$base/$prefix/g" $prefix\_parameters.cfg.orig1
 
-	cd $basedir
+		cd $basedir
+	fi
 fi
 
 if [ ! -z $aed ]
