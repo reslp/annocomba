@@ -60,6 +60,7 @@ fi
 
 #Switch off Repeatmasking based on Model organism
 sed -i 's/model_org=all/model_org= /' maker_opts.ctl
+sed -i 's/repeat_protein=.* #/repeat_protein= #/' maker_opts.ctl
 
 #for PASS2
 sed -i 's/keep_preds=0/keep_preds=1/' maker_opts.ctl
