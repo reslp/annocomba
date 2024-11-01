@@ -12,14 +12,14 @@ signalp_dir: data/external/signalp-4.1
 
 # You may change the values below before you run setup:
 funannotate_databases: all # usually this does not need to be changed.
-funannotate_busco_set: "arthropoda" # The BUSCO set is used in funannotate predict and annotate.
+funannotate_busco_set: "metazoa" # The BUSCO set is used in funannotate predict and annotate.
 genbank_template: data/genbank_template.txt # Make sure get your own file from NCBI.
 eggnog_database: "NOG" # usually this does not need to be changed.
 
 ###### end of SETUP settings
 
 # general settings:
-samples: "data/data.tsv"
+samples: "data/data.Hex.tsv"
 #samples: "data/data-funannotate.test.csv"
 assembly_cleanup:
     minlen: 1000
@@ -32,7 +32,7 @@ assembly_cleanup:
 
 skip_BUSCO: 
 augustus_training_params: 
-busco_set: "arthropoda_odb10" # The BUSCO set is used in the initial BUSCO run
+busco_set: "metazoa_odb10" # The BUSCO set is used in the initial BUSCO run
 busco_species: "auto"
 busco_tblastn_single_core: "no"
 est_evidence_path: data/transcripts
@@ -75,6 +75,7 @@ clean:
     minlen: 1000
 mask:
     method: "repeatmasker"
+    repeat_taxon: "all"
     threads: 48
 predict:
     organism: "other"

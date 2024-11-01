@@ -130,7 +130,7 @@ rule repeatmasker:
 		fasta = rules.sort.output.assembly,
 	params:
 		prefix = "{sample}",
-		repeat_taxon = "eukaryota",
+		repeat_taxon = config["mask"]["repeat_taxon"],
 		wd = os.getcwd(),
 		conversion_script = "bin/convert_repeatmasker_gff_to_MAKER_compatible_gff.sh"
 	threads: config["threads"]["repeatmasker"]
