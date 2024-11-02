@@ -73,6 +73,8 @@ split:
 split_proteins:
    job-name: SPP
    time: "01:00:00"
+download_busco_set:
+   job-name: downbusco
 busco:
    job-name: busco
    hint: multithread
