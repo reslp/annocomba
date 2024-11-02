@@ -13,6 +13,7 @@ data/transcripts/
 results/
 log/
 !log/.gitkeep
+!log/cluster-logs/.gitkeep
 data/eggnogdb
 data/RepeatMaskerLibraries
 .interproscan-5/
