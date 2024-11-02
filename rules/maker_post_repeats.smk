@@ -599,7 +599,6 @@ rule initiate_MAKER_PASS2:
 
 rule run_MAKER_PASS2:
 	input:
-		split_ok = rules.split.output.checkpoint,
 		init_ok = rules.initiate_MAKER_PASS2.output.ok
 	shadow: "shallow"
 	params:
