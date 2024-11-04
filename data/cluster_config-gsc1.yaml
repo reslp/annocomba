@@ -12,8 +12,15 @@ all_maker:
    job-name: maker-all
 all_funannotate_predict_direct:
    job-name: fun-pre-all
+all_braker:
+   job-name: braker-all
 all_funannotate_predict_post_maker:
    job-name: mak-fun-pre-all
+braker_protein:
+   job-name: brapro
+   mem: 94G
+   hint: multithread
+   time: "72:00:00"
 funannotate_clean:
    job-name: funclean 
    mem: 32G

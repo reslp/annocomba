@@ -312,6 +312,7 @@ elif args.command == "call-genes":
 		print("--all is a short cut for the combination --maker --funannotate --maker-funannotate")
 		cmd.append("all_maker")	
 		cmd.append("all_funannotate_predict_direct")	
+		cmd.append("all_braker")
 		cmd.append("all_funannotate_predict_post_maker")
 	else:
 #		print("--other runmode")
@@ -324,6 +325,9 @@ elif args.command == "call-genes":
 #		elif anno_args.funannotate and anno_args.maker:
 #			print("--funannotate and --maker (corresponds to --all) not yet implemented")
 #			sys.exit(0)
+		if anno_args.braker:
+			cmd.append("all_braker")
+
 		if anno_args.maker_funannotate:
 			cmd.append("all_funannotate_predict_post_maker")
 	

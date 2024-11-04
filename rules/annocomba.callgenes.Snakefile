@@ -23,8 +23,14 @@ rule all_funannotate_predict_post_maker:
 	input:
 		expand("checkpoints/{name}/FUNANNOTATE_tarpredict-post_maker.done", name=get_sample_selection())
 
+rule all_braker:
+	input:
+		expand("results/{name}/BRAKER-PROTEIN/braker.ok", name=get_sample_selection())
+		
+
 include: "assembly_cleanup.smk"
 include: "maker_part_one.smk"
 include: "repeats.smk"
 include: "maker_post_repeats.smk"
 include: "funannotate_predict.smk"
+include: "braker.smk"

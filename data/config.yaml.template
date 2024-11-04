@@ -33,13 +33,18 @@ assembly_cleanup:
 skip_BUSCO: 
 augustus_training_params: 
 busco_set: "metazoa_odb10" # The BUSCO set is used in the initial BUSCO run
-busco_species: "auto"
+busco_species: "schistosoma" #this is the augustus model to start with - if no preference select "auto"
 busco_tblastn_single_core: "no"
 est_evidence_path: data/transcripts # this is the default to look for transcriptome evidence; in addition more sample specific directories can be specified in the data file
 protein_evidence_path: data/protein_evidence
 
 augustus:
     train_augustus_options: "--optrounds 1" 
+
+#BRAKER
+braker:
+    additional_params:
+    threads: 32
 
 # MAKER specific setting
 maker:
@@ -77,6 +82,7 @@ mask:
     repeat_taxon: "all"
     threads: 48
 predict:
+    busco_seed_species: "schistosoma" #this is the starting model for augustus (if unkown, select "auto"), only needed for funannotate direct, i.e. ./annocomba call-genes --funannotate
     organism: "other"
     ploidy: 2
     threads: 48
@@ -99,7 +105,7 @@ compare:
     num_orthos: 10
 
 threads:
-    genemark: 16
+    genemark: 32
     busco: 32
     cegma: 32
     repeatmodeler: 24
