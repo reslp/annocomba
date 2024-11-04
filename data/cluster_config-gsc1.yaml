@@ -8,10 +8,12 @@ __default__:
    time: "00:10:00"
    output: $(pwd)/log/cluster-logs/%x-%j.stdout.txt
    error: $(pwd)/log/cluster-logs/%x-%j.stderr.txt
-maker_all:
+all_maker:
    job-name: maker-all
-funannotate_predict_all:
+all_funannotate_predict_direct:
    job-name: fun-pre-all
+all_funannotate_predict_post_maker:
+   job-name: mak-fun-pre-all
 funannotate_clean:
    job-name: funclean 
    mem: 32G
@@ -36,13 +38,21 @@ sort:
 mask:
    job-name: mask
    hint: multithread
-predict:
-   job-name: pred
+funannotate_predict_post_maker:
+   job-name: pred-pmaker
    mem: 94G
    hint: multithread
    time: "72:00:00"
-tarpredict:
-   job-name: tarpred
+tarpredict_post_maker:
+   job-name: tarpred-pmaker
+   time: "24:00:00"
+funannotate_predict_direct:
+   job-name: pred-dir
+   mem: 94G
+   hint: multithread
+   time: "72:00:00"
+tarpredict_direct:
+   job-name: tarpred-dir
    time: "24:00:00"
 iprscan:
    job-name: ipr

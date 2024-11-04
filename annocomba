@@ -297,6 +297,8 @@ elif args.command == "call-genes":
 	anno_parser.add_argument("--all", action="store_true", dest="all", default=False)
 	anno_parser.add_argument("--maker", action="store_true", dest="maker", default=False)
 	anno_parser.add_argument("--funannotate", action="store_true", dest="funannotate", default=False)
+	anno_parser.add_argument("--braker", action="store_true", dest="braker", default=False)
+	anno_parser.add_argument("--maker-funannotate", action="store_true", dest="maker_funannotate", default=False)
 	anno_parser.add_argument("--tmpdir", action="store", dest="tmpdir", default=None)
 	anno_args = anno_parser.parse_args(args.arguments)
 
@@ -305,20 +307,25 @@ elif args.command == "call-genes":
 		sys.exit(0)
 	check_config_files(anno_args.configf)
 	cmd = ["snakemake", "-s", "rules/annocomba.callgenes.Snakefile", "--configfile", anno_args.configf, "--use-singularity" , "-r", "-p"]
-	if anno_args.maker and not anno_args.funannotate:
-		cmd.append("maker_all")	
-		os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
-	elif anno_args.funannotate and not anno_args.maker:
-		cmd.append("funannotate_predict_all")	
-	elif anno_args.funannotate and anno_args.maker:
-		print("--funannotate and --maker (corresponds to --all) not yet implemented")
-		sys.exit(0)
-	elif anno_args.all:
-		print("--all not yet implemented")
-		sys.exit(0)
+	if anno_args.all:
+		#print("--all not yet implemented")
+		print("--all is a short cut for the combination --maker --funannotate --maker-funannotate")
+		cmd.append("all_maker")	
+		cmd.append("all_funannotate_predict_direct")	
+		cmd.append("all_funannotate_predict_post_maker")
 	else:
-		print("--other runmode")
-		sys.exit(0)
+#		print("--other runmode")
+#		sys.exit(0)
+		if anno_args.maker:
+			cmd.append("all_maker")	
+			#os.environ["RUNMODE"] = "maker" # this is to follow the old bash env logic inside the rulefiles. It needs to be changed in rules/funannotate_predict.smk
+		if anno_args.funannotate:
+			cmd.append("all_funannotate_predict_direct")	
+#		elif anno_args.funannotate and anno_args.maker:
+#			print("--funannotate and --maker (corresponds to --all) not yet implemented")
+#			sys.exit(0)
+		if anno_args.maker_funannotate:
+			cmd.append("all_funannotate_predict_post_maker")
 	
 	cmd.append("--config")
 	cmd.append("select="+anno_args.select)
