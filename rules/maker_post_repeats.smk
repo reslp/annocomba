@@ -36,6 +36,8 @@ rule prepare_protein_evidence:
 		cd-hit -T {threads} -M {params.mem} -i external_proteins.fasta.gz -o external_proteins.cd-hit-{params.similarity}.fasta -c {params.similarity} 1> ../../../{log.stdout} 2> ../../../{log.stderr}
 		retVal=$?
 
+		# remove spaces at the end of any lines (this is sometimes the case and throws off some software)
+		sed -i s/ $//' external_proteins.cd-hit-{params.similarity}.fasta
 		ln -s external_proteins.cd-hit-{params.similarity}.fasta ../../../{output.nr_proteins}
 
 		#remove obsolete file
@@ -670,31 +672,6 @@ rule run_MAKER_PASS2:
 		echo -e "\n$(date)\tFinished!\n"
 		"""
 
-rule cleanup_MAKER_PASS2:
-	input:
-		rules.run_MAKER_PASS2.output
-	params:
-		dir = "{unit}",
-		prefix = "{sample}",
-		script = "bin/cleanup.sh"
-	output:
-		gzipped_results = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz",
-		ok = "checkpoints/{sample}/cleanup_MAKER_PASS2.{unit}.ok"
-	singularity:
-		config["containers"]["premaker"]
-	shell:
-		"""
-		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
-		basedir=$(pwd)
-		
-		cd results/{params.prefix}/MAKER.PASS2/{params.dir}/
-
-		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
-
-		touch $basedir/{output.ok}
-		echo -e "\n$(date)\tFinished!\n"
-		"""	
-
 rule merge_MAKER_PASS2:
 	input:
 		lambda wildcards: expand("results/{{sample}}/MAKER.PASS2/{unit}/{{sample}}.{unit}.all.maker.gff", sample=wildcards.sample, unit=unitdict[wildcards.sample])
@@ -721,3 +698,30 @@ rule merge_MAKER_PASS2:
 		touch $basedir/{output.ok}
 		echo -e "\n$(date)\tFinished!\n"
 		"""
+
+rule cleanup_MAKER_PASS2:
+	input:
+		rules.run_MAKER_PASS2.output
+	params:
+		dir = "{unit}",
+		prefix = "{sample}",
+		script = "bin/cleanup.sh"
+	output:
+		gzipped_results = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.maker.output.tar.gz",
+		ok = "checkpoints/{sample}/cleanup_MAKER_PASS2.{unit}.ok"
+	singularity:
+		config["containers"]["premaker"]
+	shell:
+		"""
+		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
+		basedir=$(pwd)
+		
+		cd results/{params.prefix}/MAKER.PASS2/{params.dir}/
+
+		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
+
+		touch $basedir/{output.ok}
+		echo -e "\n$(date)\tFinished!\n"
+		"""	
+
+
