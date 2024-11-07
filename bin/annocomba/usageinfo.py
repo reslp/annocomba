@@ -64,6 +64,8 @@ Usage: annocomba call-genes <command>
 Arguments:
 	--maker			Will generate MAKER annotations
 	--funannotate		Will generate Funannotate annotations
+	--braker		Will generate BRAKER annotations
+	--maker-funannotate	Will genenerate Funannotate annotations using MAKER annotations as additional evidence
 	--all			Will do all of the above
 
 Optional arguments:
