@@ -2,7 +2,7 @@
 rule funannotate_predict_direct:
 	input:
 		assembly = rules.mask_repeats.output.soft,
-		genemark_ok = rules.genemark.output.check,
+		gm_gtf = rules.genemark.output.gtf,
 		protein_evidence = "results/{sample}/NR_PROTEIN_EVIDENCE/nr_external_proteins.cd-hit.fasta" 
 	output:
 		check = "checkpoints/{sample}/FUNANNOTATE_predict-direct.done",
@@ -45,7 +45,7 @@ rule funannotate_predict_direct:
 		--optimize_augustus --cpus {threads} --busco_db {params.busco_db} --organism {params.organism} --busco_seed_species {params.busco_seed_species} \
 		--ploidy {params.ploidy} \
 		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta {params.wd}/results/{sample}/NR_PROTEIN_EVIDENCE/nr_external_proteins.cd-hit.fasta \
-		--genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf \
+		--genemark_gtf {params.wd}/{input.gm_gtf} \
 		$(if [[ -f "{params.transcripts[ests]}" ]]; then echo -e "--transcript_evidence {params.transcripts[ests]}"; fi) \
 		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) 2>&1 | tee {params.wd}/{log}
 
@@ -61,6 +61,7 @@ rule funannotate_predict_direct:
 rule funannotate_predict_post_maker:
 	input:
 		assembly = rules.mask_repeats.output.soft,
+		gm_gtf = rules.genemark.output.gtf,
 		maker_pass2="checkpoints/{sample}/merge_MAKER_PASS2.ok"
 	output:
 		check = "checkpoints/{sample}/FUNANNOTATE_predict-post_maker.done",
@@ -145,7 +146,7 @@ rule funannotate_predict_post_maker:
 		--ploidy {params.ploidy} \
 		--protein_evidence {params.wd}/data/funannotate_database/uniprot_sprot.fasta results/{sample}/NR_PROTEIN_EVIDENCE/nr_external_proteins.cd-hit.fasta \
 		--other_gff {params.wd}/results/{params.sample_name}/MAKER.PASS2/{params.sample_name}.all.maker.gff:{params.maker_weight} \
-		--genemark_gtf {params.wd}/results/{params.sample_name}/GENEMARK/genemark.gtf \
+		--genemark_gtf {params.wd}/{input.gm_gtf} \
 		$(if [[ -f "{params.transcripts[ests]}" ]]; then echo -e "--transcript_evidence {params.transcripts[ests]}"; fi) \
 		$(if [[ "{params.optional}" != "None" ]]; then echo -n "{params.optional}"; fi) 2>&1 | tee {params.wd}/{log}
 
@@ -168,7 +169,7 @@ rule tarpredict_direct:
 		folder = "{sample}"
 	shell:
 		"""
-		cd results/{params.folder}/FUNANNOTATE/{params.folder}_preds/predict_misc
+		cd results/{params.folder}/FUNANNOTATE-direct/{params.folder}_preds/predict_misc
 		echo -e "Archiving $(pwd)/EVM -> $(pwd)/EVM.tar"
 		tar -cf EVM.tar EVM && rm -r EVM
 		echo -e "Archiving $(pwd)/busco -> $(pwd)/busco.tar"
