@@ -75,7 +75,9 @@ if path.exists("bin/Genemark/gm_key"):
 			stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
 			stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
 		output:
-			check = "checkpoints/{sample}/genemark.status.ok",
+			check = "results/{sample}/GENEMARK/genemark.status.ok",
+			gtf = "results/{sample}/GENEMARK/genemark.gtf",
+			mod = "results/{sample}/GENEMARK/gmhmm.mod"
 		shell:
 			"""
 			echo -e "\\n$(date)\tStarting on host: $(hostname) ...\\n"
@@ -530,7 +532,7 @@ def trigger_genemark(wildcards):
 	if config["genemark"]["skip"] == "yes":
 		return []
 	else:
-		return "checkpoints/"+wildcards.sample+"/genemark.status.ok"
+		return "results/{sample}/GENEMARK/genemark.status.ok"
 
 rule initiate_MAKER_PASS2:
 	input:
