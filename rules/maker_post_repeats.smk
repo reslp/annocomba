@@ -293,23 +293,27 @@ rule run_MAKER_PASS1:
 
 #rule cleanup_MAKER_PASS1:
 #	input:
-#		rules.run_MAKER_PASS1.output
+#		rules.merge_MAKER_PASS1.ok
 #	params:
-#		dir = "{unit}",
 #		prefix = "{sample}",
 #		script = "bin/cleanup.sh"
 #	singularity:
-#		"docker://chrishah/premaker-plus:18"
+#		config["containers"]["premaker"]
 #	output:
-#		gzipped_results = "results/{sample}/MAKER.PASS1/{unit}/{sample}.{unit}.maker.output.tar.gz",
-#		ok = "checkpoints/{sample}/cleanup_MAKER_PASS1.{unit}.ok"
+#		ok = "results/{sample}/MAKER.PASS1/cleanup.done"
 #	shell:
 #		"""
 #		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 #		basedir=$(pwd)
 #		
-#		cd results/{params.prefix}/MAKER.PASS1/{params.dir}/
-#		bash $basedir/{params.script} {params.prefix}.{params.dir}.maker.output
+#		cd results/{params.prefix}/MAKER.PASS1/
+#
+#		#clean up some
+#		echo -e "\n\n[$(date)]\tCleaning up:" >> {params.wd}/{log}
+#		for d in $(find ./ -maxdepth 1 -mindepth 1 -type d)
+#		do
+#			bash $basedir/{params.script} $d
+#		done 
 #		touch $basedir/{output.ok}
 #		echo -e "\n$(date)\tFinished!\n"
 #
