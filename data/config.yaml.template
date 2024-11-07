@@ -33,7 +33,7 @@ assembly_cleanup:
 skip_BUSCO: 
 augustus_training_params: 
 busco_set: "metazoa_odb10" # The BUSCO set is used in the initial BUSCO run
-busco_species: "schistosoma" #this is the augustus model to start with - if no preference select "auto"
+busco_species: "auto" #this is the augustus model to start with - if no preference select "auto"
 busco_tblastn_single_core: "no"
 est_evidence_path: data/transcripts # this is the default to look for transcriptome evidence; in addition more sample specific directories can be specified in the data file
 protein_evidence_path: data/protein_evidence
@@ -43,6 +43,7 @@ augustus:
 
 #BRAKER
 braker:
+    workflow_version: ["protein","protein+RNA"]
     additional_params:
     threads: 32
 
@@ -66,12 +67,13 @@ containers:
     cegma: docker://chrishah/cegma:2.5
     interproscan: docker://reslp/interproscan-wrapper:5.48-83.0
     augustus: docker://chrishah/augustus:v3.3.2-parallel
+    braker: docker://teambraker/braker3:v3.0.7.6
 
 cdhit:
     similarity: "0.98"
 aed:
     snap_pass2: "0.3"
-    AUGUSTUS_PASS2: ["0.1","0.2","0.3"]
+    train_augustus_maker: ["0.1","0.2","0.3"]
 
 # funannotate specific settings
 clean:
@@ -112,7 +114,7 @@ threads:
     repeatmasker: 32
     prepare_protein_evidence: 8
     run_MAKER_PASS1: 8
-    AUGUSTUS_PASS2: 30
+    train_augustus_maker: 30
     run_MAKER_PASS2: 8
     interproscan: 90
     edta: 16

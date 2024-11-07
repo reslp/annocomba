@@ -16,8 +16,13 @@ all_braker:
    job-name: braker-all
 all_funannotate_predict_post_maker:
    job-name: mak-fun-pre-all
+braker_prot_rna:
+   job-name: braprorna
+   mem: 94G
+   hint: multithread
+   time: "72:00:00"
 braker_protein:
-   job-name: brapro
+   job-name: braprotein
    mem: 94G
    hint: multithread
    time: "72:00:00"
@@ -155,7 +160,7 @@ snap_pass2:
    job-name: SNA2
    mem: 4G
    time: "00:30:00"
-AUGUSTUS_PASS2:
+train_augustus_maker:
    job-name: AUG2
    hint: nomultithread
    mem: 40G
