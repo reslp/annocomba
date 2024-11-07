@@ -31,6 +31,31 @@ def get_sample_selection():
 	else:
 		return config["select"].split(",")
 
+def targets_for_braker(samples):
+	sample_data = pd.read_table(samples, header=0, keep_default_na=True).set_index("sample", drop=False)
+	sample_list = []
+	file_list = []
+	if config["select"] == "all":
+		if config["exclude"] != "none":
+			sample_list = [s for s in sample_data.index.tolist() if s not in config["exclude"].split(",")] 	
+		else:
+			sample_list = sample_data.index.tolist()
+	else:
+		sample_list = [s for s in sample_data.index.tolist() if s in config["select"].split(",")]
+
+	if "protein" in config["braker"]["workflow_version"]:
+		for s in sample_list:
+			file_list.append("results/"+s+"/BRAKER-PROTEIN/braker.ok")
+			
+	if "protein+RNA" in config["braker"]["workflow_version"]:
+		data = sample_data.dropna(subset=['rnaseq_sets_dir', 'rnaseq_sets_ids'])
+#		print(data)
+		for s in data.index.tolist():
+			if s in sample_list:
+				file_list.append("results/"+s+"/BRAKER-PROT-RNA/braker.ok")
+
+	return file_list
+
 # this function determines which functional annotations should be performed. It requires the config parameter annotations provided by the annocomba script.
 def determine_annotations():
 	files = []
@@ -82,6 +107,12 @@ def get_contig_prefix(wildcards):
 
 def get_premasked_state(wildcards):
 	return sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1]
+
+def get_rnaseq_id(wildcards):
+	return sample_data.loc[wildcards.sample, ["rnaseq_sets_ids"]].to_list()
+
+def get_rnaseq_dir(wildcards):
+	return sample_data.loc[wildcards.sample, ["rnaseq_sets_dir"]].to_list()
 
 def get_all_samples(wildcards):
 	sam = sample_data["contig_prefix"].tolist()

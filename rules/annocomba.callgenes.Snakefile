@@ -25,7 +25,7 @@ rule all_funannotate_predict_post_maker:
 
 rule all_braker:
 	input:
-		expand("results/{name}/BRAKER-PROTEIN/braker.ok", name=get_sample_selection())
+		targets_for_braker(config["samples"])
 		
 
 include: "assembly_cleanup.smk"
