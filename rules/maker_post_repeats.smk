@@ -57,7 +57,7 @@ def trigger_repeatmasking(wildcards):
 	if sample_data.loc[wildcards.sample, ["premasked"]].to_list()[-1] == "yes":
 		return "results/"+wildcards.sample+"/ASSEMBLY_CLEANUP/"+wildcards.sample+"_sorted.fas"
 	else:
-		return "results/"+wildcards.sample+"/REPEATMASKER/"+wildcards.sample+"_sorted.hardmasked.fas"
+		return "results/"+wildcards.sample+"/REPEATMASKER/"+wildcards.sample+"_sorted.softmasked.fas"
 
 
 if path.exists("bin/Genemark/gm_key"):
@@ -70,8 +70,7 @@ if path.exists("bin/Genemark/gm_key"):
 			gmes_petap_params = config["genemark"]["gmes_petap_params"],
 			wd = os.getcwd()
 		threads: config["threads"]["genemark"]
-		singularity:
-			config["containers"]["premaker"]
+		singularity: config["containers"]["braker"]
 		log:
 			stdout = "results/{sample}/logs/GENEMARK.{sample}.stdout.txt",
 			stderr = "results/{sample}/logs/GENEMARK.{sample}.stderr.txt"
@@ -80,7 +79,9 @@ if path.exists("bin/Genemark/gm_key"):
 		shell:
 			"""
 			echo -e "\\n$(date)\tStarting on host: $(hostname) ...\\n"
-			export PATH="{params.wd}/{params.genemark_dir}:$PATH"
+			#export PATH="{params.wd}/{params.genemark_dir}:$PATH"
+
+			export GENEMARK_PATH="/opt/ETP/bin/gmes"
                 
 			if [[ ! -d results/{params.prefix}/GENEMARK ]]
 			then
@@ -96,20 +97,22 @@ if path.exists("bin/Genemark/gm_key"):
 			cd results/{params.prefix}/GENEMARK
 
 			# can this be done as part of setup? perhaps not, since this place does not yet exist on setup
-			ln -sf {params.wd}/{params.genemark_dir}/gm_key .gm_key
+			#ln -sf {params.wd}/{params.genemark_dir}/gm_key .gm_key
 
 			if [ "{params.gmes_petap_params}" == "None" ]
 			then
-				gmes_petap.pl -ES -cores {threads} -sequence {params.wd}/{input.fasta} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
+				gmes_petap.pl --ES --cores {threads} -sequence {params.wd}/{input.fasta} --soft_mask auto 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			else
-				gmes_petap.pl -ES {params.gmes_petap_params} -cores {threads} -sequence {params.wd}/{input.fasta} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
+				gmes_petap.pl --ES {params.gmes_petap_params} --cores {threads} -sequence {params.wd}/{input.fasta} --soft_mask auto 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			fi
 
-			# tar genemark output so save space and reduce number of files:
-			tar -cf output.tar -C $(pwd) output
-			tar -cf output.tar -C $(pwd) data
+			# tar genemark output to save space and reduce number of files:
+			tar -cfz output.tar.gz -C $(pwd) output
 			rm -rf output
+			tar -cfz data.tar.gz -C $(pwd) data
 			rm -rf data
+			tar -cfz run.tar.gz -C $(pwd) run
+			rm -rf run
 
 			touch {params.wd}/{output.check}
 			echo -e "\\n$(date)\tFinished!\\n"
