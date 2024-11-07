@@ -1,0 +1,13 @@
+./annocomba call-genes --maker --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry
+./annocomba call-genes --maker --braker --funannotate --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry
+
+#make rulegraph
+./annocomba call-genes --all --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--rulegraph" | grep "digraph" -A 10000 | dot -Tpdf > rulegraph.all.pdf
+./annocomba call-genes --maker --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--rulegraph" | grep "digraph" -A 10000 | dot -Tpdf > rulegraph.maker.pdf
+./annocomba call-genes --funannotate --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--rulegraph" | grep "digraph" -A 10000 | dot -Tpdf > rulegraph.funannotate-direct.pdf
+./annocomba call-genes --braker --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--rulegraph" | grep "digraph" -A 10000 | dot -Tpdf > rulegraph.braker.pdf
+./annocomba call-genes --maker-funannotate --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--rulegraph" | grep "digraph" -A 10000 | dot -Tpdf > rulegraph.funannotate-post_maker.pdf
+
+
+#make dag
+./annocomba call-genes --all --verbose --config-file data/config.Hex.yaml -t slurm --cluster-config data/cluster_config-gsc1.yaml --dry --snakemake="--dag" | grep "digraph" -A 10000 | dot -Tpdf > dag.all.pdf
