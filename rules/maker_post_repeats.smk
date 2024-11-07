@@ -178,7 +178,10 @@ rule initiate_MAKER_PASS1:
 		stdout = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS1.init.{sample}.stderr.txt"
 	output:
-		ok = "checkpoints/{sample}/MAKER_PASS1_init.ok"
+		ok = "checkpoints/{sample}/MAKER_PASS1_init.ok",
+		maker_opts = "results/{sample}/MAKER.PASS1/maker_opts.ctl",
+		maker_bopts = "results/{sample}/MAKER.PASS1/maker_bopts.ctl",
+		maker_exe = "results/{sample}/MAKER.PASS1/maker_exe.ctl"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -229,15 +232,18 @@ rule initiate_MAKER_PASS1:
 
 rule run_MAKER_PASS1:
 	input:
-		init_ok = rules.initiate_MAKER_PASS1.output.ok,
+		maker_opts = rules.initiate_MAKER_PASS1.output.maker_opts,
+		maker_bopts = rules.initiate_MAKER_PASS1.output.maker_bopts,
+		maker_exe = rules.initiate_MAKER_PASS1.output.maker_exe,
 		split_ok = rules.split.output.checkpoint
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
+		wd = os.getcwd(),
 		extra_params = config['maker']['maker_pass_1_options'] 
 	threads: config["threads"]["run_MAKER_PASS1"]
-	shadow: "shallow"
+	shadow: "minimal"
 	singularity:
 		config["containers"]["premaker"]
 	log:
@@ -255,11 +261,11 @@ rule run_MAKER_PASS1:
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 
 		basedir=$(pwd)
-		export PATH="$(pwd)/bin/maker/bin:$PATH"
+		export PATH="{params.wd}/bin/maker/bin:$PATH"
 
 		mkdir {params.dir}
 		cd {params.dir}
-		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
+		ln -s {params.wd}/{params.sub} {params.prefix}.{params.dir}.fasta
 
 		#run MAKER
 		maker -base {params.prefix}.{params.dir} -g {params.prefix}.{params.dir}.fasta -nolock $(if [[ "{params.extra_params}" != "None" ]]; then echo "{params.extra_params}"; fi) -c $(( {threads} - 1 )) $basedir/results/{params.prefix}/MAKER.PASS1/maker_opts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_bopts.ctl $basedir/results/{params.prefix}/MAKER.PASS1/maker_exe.ctl 1> $basedir/{log.stdout} 2> $basedir/{log.stderr}
@@ -357,7 +363,7 @@ def specify_training_params(wildcards):
 	else:
 		return "results/"+wildcards.sample+"/BUSCO/"+wildcards.sample+"/run_"+config["busco_set"]+"/augustus_output/retraining_parameters/BUSCO_"+wildcards.sample
 
-rule AUGUSTUS_PASS2:
+rule train_augustus_maker:
 	input:
 		busco_ok = trigger_busco,
 		fasta = trigger_repeatmasking,
@@ -369,7 +375,7 @@ rule AUGUSTUS_PASS2:
 		aed = "{aed}",
 		transcripts = get_transcripts_path, 
 		extra_params = config['augustus']['train_augustus_options'] 
-	threads: config["threads"]["AUGUSTUS_PASS2"]
+	threads: config["threads"]["train_augustus_maker"]
 	singularity:
 		config["containers"]["augustus"]
 	log:
@@ -451,9 +457,9 @@ rule AUGUSTUS_PASS2:
 		"""
 rule pick_augustus_training_set:
 	input:
-		lambda wildcards: expand("checkpoints/{{sample}}/{aed}.augustus.ok", sample=wildcards.sample, aed=config["aed"]["AUGUSTUS_PASS2"])
+		lambda wildcards: expand("checkpoints/{{sample}}/{aed}.augustus.ok", sample=wildcards.sample, aed=config["aed"]["train_augustus_maker"])
 	params:
-		aeds = expand("{aed}", aed=config["aed"]["AUGUSTUS_PASS2"]),
+		aeds = expand("{aed}", aed=config["aed"]["train_augustus_maker"]),
 		prefix = "{sample}",
 		best_params = "results/{sample}/AUGUSTUS.PASS2/training_params",
 		gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff3",
@@ -555,7 +561,10 @@ rule initiate_MAKER_PASS2:
 		stdout = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stdout.txt",
 		stderr = "results/{sample}/logs/MAKER.PASS2.init.{sample}.stderr.txt"
 	output:
-		ok = "checkpoints/{sample}/MAKER.PASS2.init.ok"
+		ok = "checkpoints/{sample}/MAKER.PASS2.init.ok",
+		maker_opts = "results/{sample}/MAKER.PASS2/maker_opts.ctl",
+		maker_bopts = "results/{sample}/MAKER.PASS2/maker_bopts.ctl",
+		maker_exe = "results/{sample}/MAKER.PASS2/maker_exe.ctl"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
@@ -610,13 +619,15 @@ rule initiate_MAKER_PASS2:
 
 rule run_MAKER_PASS2:
 	input:
-		init_ok = rules.initiate_MAKER_PASS2.output.ok
-	shadow: "shallow"
+		maker_opts = rules.initiate_MAKER_PASS2.output.maker_opts,
+		maker_bopts = rules.initiate_MAKER_PASS2.output.maker_bopts,
+		maker_exe = rules.initiate_MAKER_PASS2.output.maker_exe
 	params:
 		dir = "{unit}",
 		prefix = "{sample}",
 		genemark_dir = "bin/Genemark",
 		sub = "results/{sample}/GENOME_PARTITIONS/{unit}.fasta",
+		wd = os.getcwd(),
 		extra_params = config['maker']['maker_pass_2_options'] 
 	threads: config["threads"]["run_MAKER_PASS2"]
 	singularity:
@@ -631,21 +642,22 @@ rule run_MAKER_PASS2:
 		gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.all.maker.gff",
 		noseq_gff = "results/{sample}/MAKER.PASS2/{unit}/{sample}.{unit}.noseq.maker.gff",
 		ok = "checkpoints/{sample}/MAKER.PASS2.{unit}.ok"
+	shadow: "minimal"
 	shell:
 		"""
 		echo -e "\n$(date)\tStarting on host: $(hostname) ...\n"
 
 		basedir=$(pwd)
-		export PATH="$(pwd)/bin/maker/bin:$PATH"
+		export PATH="{params.wd}/bin/maker/bin:$PATH"
 
 		mkdir {params.dir}
 		cd {params.dir}
 		
-		ln -s $basedir/{params.sub} {params.prefix}.{params.dir}.fasta
+		ln -s {params.wd}/{params.sub} {params.prefix}.{params.dir}.fasta
 		
-		AUGUSTUS_CONFIG_PATH=$basedir/results/{params.prefix}/MAKER.PASS2/tmp/config
-		if [ -s "$basedir/{params.genemark_dir}" ]; then 
-			ln -fs $basedir/{params.genemark_dir}/gm_key .gm_key;
+		AUGUSTUS_CONFIG_PATH={params.wd}/results/{params.prefix}/MAKER.PASS2/tmp/config
+		if [ -s "{params.wd}/{params.genemark_dir}" ]; then 
+			ln -fs {params.wd}/{params.genemark_dir}/gm_key .gm_key;
 		fi
 
 		#run MAKER
