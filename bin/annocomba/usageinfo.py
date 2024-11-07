@@ -31,13 +31,11 @@ standard_arguments= """Arguments:
 	-f, --force		Soft force runmode which has already been run.
 	-F, --FORCE		Hard force runmode recreating all output.
 	--config-file		Specify configy file path. Default: data/config.yaml
-	--select		Select samples to be analyzed (name in sample column of data file). Comma separated. Default: all
-	--exclude		Exclude samples from being analyzed (name in sample column of data file). Comma separated. Default: none
-	--singularity		Specify arguments (in quotes) to be passed on to Singularity
-	--snakemake		Specify arguments (in quotes) to be passed on to Snakemake
+	--singularity=		Specify arguments (in quotes) to be passed on to Singularity
+	--snakemake=		Specify arguments (in quotes) to be passed on to Snakemake
+	--select=		Specify samples (in quotes; comma separated) mentioned in data file to be processed
+	--exclude=		Specify samples (in quotes; comma separated) mentioned in datafile to be excluded from processing
 	--rerun-incomplete	Shortcut to Snakemake option --rerun-incomplete
-	--select		Specify samples (in quotes; comma separated) mentioned in data file to be processed
-	--exclude		Specify samples (in quotes; comma separated) mentioned in datafile to be excluded from processing
 	
 	--dry			Make a dry run.
 	--verbose		Display more output.
