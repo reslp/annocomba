@@ -1,4 +1,5 @@
 from os import path
+import glob
 
 rule prepare_protein_evidence:
 	input:
@@ -37,10 +38,13 @@ rule prepare_protein_evidence:
 		retVal=$?
 
 		# remove spaces at the end of any lines (this is sometimes the case and throws off some software)
-		sed -i s/ $//' external_proteins.cd-hit-{params.similarity}.fasta
+		echo -e "Reformatting protein evidence..."
+		sed -i 's/ $//' external_proteins.cd-hit-{params.similarity}.fasta
+		echo -e "Symlinking protein evidence..."
 		ln -s external_proteins.cd-hit-{params.similarity}.fasta ../../../{output.nr_proteins}
 
 		#remove obsolete file
+		echo -e "Removing obsolete files..."
 		rm external_proteins.fasta.gz
 
 
