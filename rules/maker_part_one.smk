@@ -101,7 +101,7 @@ rule busco:
 	params:
 		prefix = "{sample}",
 		augustus_species = config["busco_species"],
-		augustus_config_in_container = "/usr/local/config",
+		augustus_config_in_container = "/opt/conda/config",
 		busco_set = config["busco_set"],
 		wd = os.getcwd(),
 	threads: config["threads"]["busco"]
