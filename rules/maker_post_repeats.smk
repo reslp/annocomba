@@ -113,11 +113,11 @@ if path.exists("bin/Genemark/gm_key"):
 			fi
 
 			# tar genemark output to save space and reduce number of files:
-			tar -cfz output.tar.gz -C $(pwd) output
+			tar -czf output.tar.gz -C $(pwd) output
 			rm -rf output
-			tar -cfz data.tar.gz -C $(pwd) data
+			tar -czf data.tar.gz -C $(pwd) data
 			rm -rf data
-			tar -cfz run.tar.gz -C $(pwd) run
+			tar -czf run.tar.gz -C $(pwd) run
 			rm -rf run
 
 			touch {params.wd}/{output.check}
