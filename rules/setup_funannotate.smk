@@ -8,7 +8,7 @@ rule setup_funannotate:
 		config["containers"]["funannotate"]
 	shell:
 		"""
-		funannotate setup -i {params.databases} --busco_db {params.busco_set}
+		funannotate setup -w -i {params.databases} --busco_db {params.busco_set}
 		funannotate database
 		touch {output}
 		"""
