@@ -88,6 +88,7 @@ Usage: annocomba util <arguments>
 Arguments:
 	manage-jobs		Manage jobs from cHPC cluster submissions
 	check-setup		Quick (and shallow) check of annocomba setup
+	patch-snakemake		Patch snakemake 6.0.2 for Apptainer compatibility
 	-h, --help		Display help
 """
 

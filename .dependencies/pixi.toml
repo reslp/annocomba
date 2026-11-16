@@ -1,0 +1,9 @@
+[workspace]
+name = "annocomba"
+description = "Automated genome annotation pipeline combining MAKER and funannotate"
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = ">=3.10"
+snakemake = "==6.0.2"

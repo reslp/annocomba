@@ -1,6 +1,28 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
+""":" 
+set -euo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+
+# Check if snakemake is already available on the system
+HAS_SNAKEMAKE=false
+command -v snakemake >/dev/null 2>&1 && HAS_SNAKEMAKE=true
+
+if [ "$HAS_SNAKEMAKE" = true ]; then
+    exec python3 "$0" "$@"
+fi
+
+# Bootstrap pixi if needed and run inside the managed environment
+PIXI="$SCRIPT_DIR/.pixi/bin/pixi"
+if [ ! -x "$PIXI" ]; then
+  echo "pixi is not installed. Installing now..."
+  curl -fsSL https://pixi.sh/install.sh | PIXI_HOME="$SCRIPT_DIR/.pixi" PIXI_NO_PATH_UPDATE=1 bash
+fi
+
+exec "$PIXI" run --manifest-path "$SCRIPT_DIR/.dependencies/pixi.toml" python3 "$0" "$@"
+":" """
 import sys, os, io
 sys.path.insert(0, os.getcwd()+"/bin")
+
 from annocomba.usageinfo import *
 from annocomba.utilities import *
 #import time
@@ -122,6 +144,37 @@ def check_config_files(configfilepath):
 	for f in all_files:
 		add_bindpoint(f)	
 	# here additional checks can be implemented.
+
+def check_required_software():
+    import shutil
+    spath = shutil.which("singularity")
+    if spath is None:
+        print(now(), "ERROR: Singularity/Apptainer command not found.")
+        sys.exit(1)
+    if os.path.islink(spath):
+        if "apptainer" in os.readlink(spath):
+            which = "apptainer"
+        else:
+            which = "singularity"
+    else:
+        which = "singularity"
+    if which == "singularity":
+        try:
+            sv = subprocess.check_output(["singularity", "version"]).decode("ascii").strip()
+            print(now(), "Singularity version:", sv)
+        except Exception:
+            pass
+    else:
+        print(now(), "-" * 64)
+        print(now(), "You seem to be using Apptainer.")
+        print(now(), "WARNING: Snakemake 6.0.2 may have problems with Apptainer.")
+        print(now(), "Consider running: annocomba util patch-snakemake")
+        print(now(), "-" * 64)
+        try:
+            sv = subprocess.check_output(["apptainer", "version"]).decode("ascii").strip()
+            print(now(), "Apptainer version:", sv)
+        except Exception:
+            pass
 
 pars = argparse.ArgumentParser(usage=help_message(default_help))
 pars.add_argument('--debug', action='store_true', dest="debug", required=False)
@@ -428,6 +481,31 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, True):
 			print(line, end="\r")
+	if which_util == "patch-snakemake":
+		print(now(), "Patching snakemake deployment/singularity.py for Apptainer compatibility...")
+		import snakemake.deployment.singularity as _sng
+		sng_file = _sng.__file__
+		with open(sng_file, "r") as fh:
+			_old = fh.read()
+		if "apptainer" in _old:
+			print(now(), "Snakemake already appears to be patched. Nothing to do.")
+		else:
+			_new = _old.replace(
+				"shutil.which('singularity')",
+				"shutil.which('singularity') or shutil.which('apptainer')"
+			)
+			if _new == _old:
+				_new = _old.replace(
+					'"singularity"',
+					'"singularity" or shutil.which("apptainer")'
+				)
+			if _new == _old:
+				print(now(), "Could not auto-patch. Please patch manually.")
+			else:
+				with open(sng_file, "w") as fh:
+					fh.write(_new)
+				print(now(), "Patch applied successfully to", sng_file)
+				print(now(), "If you relocate the pixi environment, run this command again.")
 	if which_util == "check-setup":
 		qs_parser = UtilParser(add_help=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
