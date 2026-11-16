@@ -1,6 +1,7 @@
 rule split_proteins:
 	input:
-		checkpoint = rules.aggregate_funannotate_predict.output
+		proteins = "results/{sample}/"+config["to_annotate"]+"/{sample}_preds/predict_results/{sample}.proteins.fa"
+#		checkpoint = rules.aggregate_funannotate_predict.output
 	output:
 		dir = directory("results/{sample}/INTERPROSCAN/protein_batches"),
 		checkpoint = "checkpoints/{sample}/split_proteins.ok",
@@ -9,13 +10,15 @@ rule split_proteins:
 	params:
 		n_batches = get_batch_number,
 		wd = os.getcwd(),
+		to_annotate = config["to_annotate"],
 		contig_prefix = get_contig_prefix
 	shell:
 		"""
 		mkdir {output.dir}
 		cd {output.dir}
 
-		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/predict_results/{wildcards.sample}.proteins.fa {params.n_batches}
+#		{params.wd}/bin/split_fasta.py {params.wd}/results/{wildcards.sample}/{params.to_annotate}/{wildcards.sample}_preds/predict_results/{wildcards.sample}.proteins.fa {params.n_batches}
+		{params.wd}/bin/split_fasta.py {params.wd}/{input.proteins} {params.n_batches}
 
 		touch {params.wd}/{output.checkpoint}
 		"""
@@ -58,59 +61,71 @@ rule gather_iprscan:
 	output:
 		"checkpoints/{sample}/aggregate_INTERPROSCAN.done"
 	params:
+		to_annotate = config["to_annotate"],
 		pred_folder = get_contig_prefix
 	singularity:
 		config["containers"]["interproscan"]
 	shell:
 		"""
-		mkdir -p results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc
-		head -n 1 {input[0]} > results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
-		for f in $(echo "{input}"); do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
-		tail -n 1 {input[0]} >> results/{wildcards.sample}/FUNANNOTATE/{wildcards.sample}_preds/annotate_misc/iprscan.xml
+		mkdir -p results/{wildcards.sample}/{params.to_annotate}/{wildcards.sample}_preds/annotate_misc
+		head -n 1 {input[0]} > results/{wildcards.sample}/{params.to_annotate}/{wildcards.sample}_preds/annotate_misc/iprscan.xml
+		for f in $(echo "{input}"); do cat $f | tail -n +2 | head -n -1; done >> results/{wildcards.sample}/{params.to_annotate}/{wildcards.sample}_preds/annotate_misc/iprscan.xml
+		tail -n 1 {input[0]} >> results/{wildcards.sample}/{params.to_annotate}/{wildcards.sample}_preds/annotate_misc/iprscan.xml
 
 		for f in $(echo "{input}"); do echo $f; data/external/interproscan/interproscan.sh -m convert -i $f -o results/{wildcards.sample}/INTERPROSCAN/output_xmls/$(basename "$f" .xml).tsv -f TSV; done
 		cat results/{wildcards.sample}/INTERPROSCAN/output_xmls/*.tsv > results/{wildcards.sample}/INTERPROSCAN/{wildcards.sample}_interproscan.tsv
 		touch {output}
 		"""
-rule remote:
-	input:
-		rules.aggregate_funannotate_predict.output
-	output:
-		"checkpoints/{sample}/FUNANNOTATE_remote.done"
-	params:
-		folder="{sample}",
-		pred_folder = get_contig_prefix,
-		methods = config["remote"]["methods"],
-		email = config["remote"]["email"]
-	log:
-		"results/{sample}/logs/remote.log"
-	singularity:
-		config["containers"]["funannotate"]
-	shell:
-		"""
-		cd results/{params.folder}/FUNANNOTATE
-		funannotate remote -i {params.pred_folder}_preds -m {params.methods} -e {params.email} >& ../../../{log}
-		touch ../../../{output}
-		"""
+#rule remote:
+#	input:
+#		rules.aggregate_funannotate_predict.output
+#	output:
+#		"checkpoints/{sample}/FUNANNOTATE_remote.done"
+#	params:
+#		folder="{sample}",
+#		pred_folder = get_contig_prefix,
+#		methods = config["remote"]["methods"],
+#		email = config["remote"]["email"]
+#	log:
+#		"results/{sample}/logs/remote.log"
+#	singularity:
+#		config["containers"]["funannotate"]
+#	shell:
+#		"""
+#		cd results/{params.folder}/FUNANNOTATE
+#		funannotate remote -i {params.pred_folder}_preds -m {params.methods} -e {params.email} >& ../../../{log}
+#		touch ../../../{output}
+#		"""
+
 rule eggnog:
 	input:
-		rules.aggregate_funannotate_predict.output
+#		rules.aggregate_funannotate_predict.output
+		proteins = "results/{sample}/"+config["to_annotate"]+"/{sample}_preds/predict_results/{sample}.proteins.fa"
 	output:
 		"checkpoints/{sample}/eggnog.done"
 	params:
 		sample="{sample}",
 		pred_folder = get_contig_prefix,
+		to_annotate = config["to_annotate"],
 		wd = os.getcwd()
 	log:
 		"results/{sample}/logs/eggnog.log"
 	singularity:
-		"docker://reslp/eggnog-mapper:1.0.3"
+		config["containers"]["eggnog_mapper"]
 	threads: config["eggnog"]["threads"]
 	shell:
 		"""
-		cd results/{params.sample}/FUNANNOTATE
-		emapper.py  -i {params.sample}_preds/predict_results/{params.sample}.proteins.fa --output {params.sample}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond >& ../../../{log}
-		touch ../../../{output}
+		cd results/{params.sample}/{params.to_annotate}
+
+		emapper.py -i {params.wd}/{input.proteins} --output {params.sample}_preds/eggnog_results -d euk --data_dir /data/eggnogdb --cpu {threads} --override -m diamond &> {params.wd}/{log}
+
+		#correct emapper output version, otherwise funannotate will abort (expects version 1.0.3)
+		mv {params.sample}_preds/eggnog_results.emapper.annotations {params.sample}_preds/eggnog_results.emapper.annotations.original
+		sed 's/emapper-a2bf5f3/emapper-1.0.3/' {params.sample}_preds/eggnog_results.emapper.annotations.original > {params.sample}_preds/eggnog_results.emapper.annotations
+		mv {params.sample}_preds/eggnog_results.emapper.seed_orthologs {params.sample}_preds/eggnog_results.emapper.seed_orthologs.original
+		sed 's/emapper-a2bf5f3/emapper-1.0.3/' {params.sample}_preds/eggnog_results.emapper.seed_orthologs.original > {params.sample}_preds/eggnog_results.emapper.seed_orthologs
+
+		touch {params.wd}/{output}
 		"""
 
 rule prepare_assembly:

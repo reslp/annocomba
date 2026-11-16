@@ -63,7 +63,7 @@ Arguments:
 	--maker			Will generate MAKER annotations
 	--funannotate		Will generate Funannotate annotations
 	--braker		Will generate BRAKER annotations
-	--maker-funannotate	Will genenerate Funannotate annotations using MAKER annotations as additional evidence
+	--post-funannotate	Will genenerate Funannotate annotations using annotations of BRAKER and/or MAKER as additional evidence - which combinations exactly are specified in the config file
 	--all			Will do all of the above
 
 Optional arguments:

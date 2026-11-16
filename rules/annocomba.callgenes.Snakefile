@@ -19,9 +19,10 @@ rule all_funannotate_predict_direct:
 	input:
 		expand("checkpoints/{name}/FUNANNOTATE_tarpredict-direct.done", name=get_sample_selection())
 
-rule all_funannotate_predict_post_maker:
+rule all_funannotate_predict_post:
 	input:
-		expand("checkpoints/{name}/FUNANNOTATE_tarpredict-post_maker.done", name=get_sample_selection())
+		targets_for_funannotate_post(get_sample_selection())
+#		expand("checkpoints/{name}/FUNANNOTATE_tarpredict-post_maker.done", name=get_sample_selection())
 
 rule all_braker:
 	input:
