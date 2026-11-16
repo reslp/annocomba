@@ -43,7 +43,7 @@ Examples:
 
 ## Rulegraph
 
-<img src="https://github.com/reslp/annocomba/blob/master/rulegraph.png" eight="500">
+<img src="https://github.com/reslp/annocomba/blob/master/rulegraph.all.png" eight="500">
 
 ## Issues (inherited from smsi-funannotate):
 - Sauron: There is a strange issue with RepeatMasker. For some reason it does not run. ReapearMasking with TanTan works fine.
