@@ -14,7 +14,7 @@ all_funannotate_predict_direct:
    job-name: fun-pre-all
 all_braker:
    job-name: braker-all
-all_funannotate_predict_post_maker:
+all_funannotate_predict_post:
    job-name: mak-fun-pre-all
 braker_prot_rna:
    job-name: braprorna
@@ -55,8 +55,24 @@ funannotate_predict_post_maker:
    mem: 94G
    hint: multithread
    time: "72:00:00"
+funannotate_predict_post_braker:
+   job-name: pred-pbraker
+   mem: 94G
+   hint: multithread
+   time: "72:00:00"
+funannotate_predict_post_all:
+   job-name: pred-pall
+   mem: 94G
+   hint: multithread
+   time: "72:00:00"
 tarpredict_post_maker:
    job-name: tarpred-pmaker
+   time: "24:00:00"
+tarpredict_post_braker:
+   job-name: tarpred-pbraker
+   time: "24:00:00"
+tarpredict_post_all:
+   job-name: tarpred-pall
    time: "24:00:00"
 funannotate_predict_direct:
    job-name: pred-dir
@@ -85,6 +101,8 @@ annotate:
    time: "24:00:00"
    hint: multithread
    mem: 94G
+annotate_all:
+   job-name: anno-all 
 compare:
    job-name: compare
    hint: multithread
@@ -100,7 +118,7 @@ download_busco_set:
 busco:
    job-name: busco
    hint: multithread
-   time: "24:00:00"
+   time: "72:00:00"
    mem: 20G
 cegma:
    job-name: cegma
@@ -130,7 +148,7 @@ genemark:
    job-name: genemark
    hint: multithread
    mem: 20G
-   time: "72:00:00"
+   time: "6-00:00:00"
 snap_pass1:
    job-name: snap1
    mem: 4G
