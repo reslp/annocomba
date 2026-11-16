@@ -1,13 +1,13 @@
 
 ####### SETUP:
 # You need to provide paths to the following programs: 
-maker_tarball: data/external/maker-2.31.10.tgz
+maker_tarball: data/external/maker-3.01.02-beta.tgz
 genemark_tarball: data/external/gmes_linux_64_4.tar.gz
 genemark_keyfile: data/external/gm_key_64.gz
-signalp_tarball: data/external/signalp-4.1g.Linux.tar.gz
 RepbaseRepeatMaskerEdition: data/external/RepBaseRepeatMaskerEdition-20181026.tar.gz
-iprscan: /gpfs/data/fs71312/reslp/databases/interproscan-5.48-83.0
-eggnog_database_path: ../../../../../software/BioSW/eggnogdb
+iprscan: /software/BioSW/interproscan/interproscan-5.71-102.0
+eggnog_database_path: /software/BioSW/eggnogdb
+signalp_tarball: data/external/signalp-4.1g.Linux.tar.gz
 signalp_dir: data/external/signalp-4.1
 
 # You may change the values below before you run setup:
@@ -19,8 +19,7 @@ eggnog_database: "NOG" # usually this does not need to be changed.
 ###### end of SETUP settings
 
 # general settings:
-samples: "data/data.Hex.tsv"
-#samples: "data/data-funannotate.test.csv"
+samples: "data/data.target4cotyle.tsv"
 assembly_cleanup:
     minlen: 1000
     percent_ns: 95
@@ -32,8 +31,8 @@ assembly_cleanup:
 
 skip_BUSCO: 
 augustus_training_params: 
-busco_set: "metazoa_odb10" # The BUSCO set is used in the initial BUSCO run
-busco_species: "auto" #this is the augustus model to start with - if no preference select "auto"
+busco_set: "metazoa_odb12" # The BUSCO set is used in the initial BUSCO run
+busco_species: "schistosoma" #this is the augustus model to start with - if no preference select "auto"
 busco_tblastn_single_core: "no"
 est_evidence_path: data/transcripts # this is the default to look for transcriptome evidence; in addition more sample specific directories can be specified in the data file
 protein_evidence_path: data/protein_evidence
@@ -63,11 +62,11 @@ containers:
     eggnog_mapper: docker://reslp/eggnog-mapper:1.0.3
     repeatmodeler: docker://reslp/repeatmodeler-repeatmasker:2.0.3-4.1.3
     premaker: docker://chrishah/premaker-plus:18-0d9787e
-    busco: docker://ezlabgva/busco:v5.2.1_cv1
+    busco: docker://ezlabgva/busco:v6.1.0_cv1
     cegma: docker://chrishah/cegma:2.5
     interproscan: docker://reslp/interproscan-wrapper:5.48-83.0
     augustus: docker://chrishah/augustus:v3.3.2-parallel
-    braker: docker://teambraker/braker3:v3.0.7.6
+    braker: docker://teambraker/braker3:v3.1.1
 
 cdhit:
     similarity: "0.98"
@@ -88,15 +87,23 @@ predict:
     organism: "other"
     ploidy: 2
     threads: 48
-    maker_weight: 2
+    maker_weight: 1
+    braker_weight: 1
+#    maker_weight: 2
+#    braker_weight: 2
     additional_params: "--force"
+    predict_post: ["maker", "braker", "braker+maker"]
+
+
+# funannotate annotate options
+to_annotate: "FUNANNOTATE-post_all" # which funannotate version to annotate 'FUNANNOTATE-direct', 'FUNANNOTATE-post_maker', 'FUNANNOTATE-post_braker', 'FUNANNOTATE-post_all'
 remote:
     methods: "phobius" #"all"
     email: "chrisi.hahni@gmail.com"
 eggnog:
     threads: 48
 annotate:
-    threads: 4
+    threads: 16
 # in case yes is specified for phylogeny or histograms, it is important that no more than 60 species are analysed (histograms)
 # for phylogeny names have to be unique because they are truncated to 10 characters before raxml or iqtree is called
 compare:
