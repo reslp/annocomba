@@ -80,19 +80,19 @@ rule download_busco_set:
 		set = config["busco_set"],
 	log:
 		"log/setup/download_busco_set.log"
+	singularity:
+		config["containers"]["busco"]
+	shadow: "minimal"
 	shell:
 		"""
 		echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
-		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
-		mkdir {output.busco_set}
 
-		base_url="https://busco-data.ezlab.org/v5/data/lineages"
-		current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
-		echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
-		echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
-		wget -q -c $base_url/$current -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
+		busco --download {params.set} 2>&1 | tee {log}
 
-		echo -ne "[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
+		echo -e "\n[$(date)]\\tmoving busco set" 2>&1 | tee {log}
+		mv busco_downloads/lineages/{params.set} {output.busco_set}
+
+		echo -ne "\n[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
 		"""
 rule busco:
 	input:
@@ -101,7 +101,7 @@ rule busco:
 	params:
 		prefix = "{sample}",
 		augustus_species = config["busco_species"],
-		augustus_config_in_container = "/opt/conda/config",
+		augustus_config_in_container = "/usr/local/config",
 		busco_set = config["busco_set"],
 		wd = os.getcwd(),
 	threads: config["threads"]["busco"]
@@ -141,7 +141,7 @@ rule busco:
 		fi
 
 		#run BUSCO
-		busco -i ../../../{input.fasta} -f --out {params.prefix} -c {threads} --mode genome --lineage_dataset {params.wd}/{input.busco_set} \
+		busco -i ../../../{input.fasta} -f --out {params.prefix} -c {threads} --mode genome --lineage_dataset {params.wd}/{input.busco_set} --datasets_version odb12 \
 		--augustus --long $aug_sp --augustus_parameters='--progress=true' 1> ../../../{log.stdout} 2> ../../../{log.stderr}
 #		--augustus $aug_sp --augustus_parameters='--progress=true' 1> ../../../{log.stdout} 2> ../../../{log.stderr}
  

@@ -1,5 +1,4 @@
 from os import path
-import glob
 
 rule prepare_protein_evidence:
 	input:
@@ -38,13 +37,10 @@ rule prepare_protein_evidence:
 		retVal=$?
 
 		# remove spaces at the end of any lines (this is sometimes the case and throws off some software)
-		echo -e "Reformatting protein evidence..."
 		sed -i 's/ $//' external_proteins.cd-hit-{params.similarity}.fasta
-		echo -e "Symlinking protein evidence..."
 		ln -s external_proteins.cd-hit-{params.similarity}.fasta ../../../{output.nr_proteins}
 
 		#remove obsolete file
-		echo -e "Removing obsolete files..."
 		rm external_proteins.fasta.gz
 
 
@@ -72,6 +68,7 @@ if path.exists("bin/Genemark/gm_key"):
 			prefix = "{sample}",
 			genemark_dir = "bin/Genemark",
 			gmes_petap_params = config["genemark"]["gmes_petap_params"],
+			script = "bin/cleanup.sh",
 			wd = os.getcwd()
 		threads: config["threads"]["genemark"]
 		singularity: config["containers"]["braker"]
@@ -107,18 +104,16 @@ if path.exists("bin/Genemark/gm_key"):
 
 			if [ "{params.gmes_petap_params}" == "None" ]
 			then
-				gmes_petap.pl --ES --cores {threads} -sequence {params.wd}/{input.fasta} --soft_mask auto 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
+				gmes_petap.pl --ES --cores {threads} --sequence {params.wd}/{input.fasta} --soft_mask auto 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			else
-				gmes_petap.pl --ES {params.gmes_petap_params} --cores {threads} -sequence {params.wd}/{input.fasta} --soft_mask auto 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
+				gmes_petap.pl --ES --cores {threads} --sequence {params.wd}/{input.fasta} --soft_mask auto {params.gmes_petap_params} 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
 			fi
 
 			# tar genemark output to save space and reduce number of files:
-			tar -czf output.tar.gz -C $(pwd) output
-			rm -rf output
-			tar -czf data.tar.gz -C $(pwd) data
-			rm -rf data
-			tar -czf run.tar.gz -C $(pwd) run
-			rm -rf run
+			for d in $(find ./ -maxdepth 1 -mindepth 1 -type d)
+			do
+				bash {params.wd}/{params.script} $d 1>> {params.wd}/{log.stdout} 2>> {params.wd}/{log.stderr}
+			done 
 
 			touch {params.wd}/{output.check}
 			echo -e "\\n$(date)\tFinished!\\n"
@@ -441,7 +436,11 @@ rule train_augustus_maker:
 
 		retVal=$?
 
-		#rm -rf tmp.{params.aed}/
+		#output training results
+		echo "\n\nInitital accuracy" 1>> $basedir/{log.stdout}
+		cat autoAug/autoAugTrain/training/test/augustus.1.out | grep -e "nucleotide level" -e "^exon level" -e "^gene level" | perl -ne 'chomp; @a=split(" "); print "$a[0] $a[1]\t$a[-4]\t$a[-2]\n"' 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr} 
+		echo "\nAccuracy post training" 1>> $basedir/{log.stdout}
+		cat autoAug/autoAugTrain/training/test/augustus.2.withoutCRF.out | grep -e "nucleotide level" -e "^exon level" -e "^gene level" | perl -ne 'chomp; @a=split(" "); print "$a[0] $a[1]\t$a[-4]\t$a[-2]\n"' 1>> $basedir/{log.stdout} 2>> $basedir/{log.stderr} 
 
 		if [ ! $retVal -eq 0 ]
 		then
@@ -556,7 +555,7 @@ rule initiate_MAKER_PASS2:
 		rm_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.repeats.gff",
 		altest_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.cdna2genome.gff",
 		est_gff = "results/{sample}/MAKER.PASS1/{sample}.noseq.maker.est2genome.gff",
-		pred_gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff",
+		pred_gff = "results/{sample}/AUGUSTUS.PASS2/{sample}.final.gff3",
 		params = "results/{sample}/AUGUSTUS.PASS2/training_params",
 		best_aed = "results/{sample}/AUGUSTUS.PASS2/{sample}.best_aed"
 	singularity:
