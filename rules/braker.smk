@@ -27,7 +27,7 @@ rule braker_protein:
 		cp -r /opt/Augustus/config augustus/
 		export AUGUSTUS_CONFIG_PATH={params.wd}/results/{wildcards.sample}/BRAKER-PROTEIN/augustus/config/
 
-		{params.wd}/scripts/braker.pl \
+		{params.wd}/bin/braker.pl \
 			--species={wildcards.sample} \
 			--genome={params.wd}/{input.assembly} \
 			--prot_seq={params.wd}/{input.protein_evidence} \
@@ -91,7 +91,7 @@ rule braker_prot_rna:
 
 		# braker.pl
  
-		{params.wd}/scripts/braker.pl \
+		{params.wd}/bin/braker.pl \
 			--species={wildcards.sample} \
 			--genome={params.wd}/{input.assembly} \
 			--prot_seq={params.wd}/{input.protein_evidence} \
@@ -115,12 +115,12 @@ rule braker_prot_rna:
 #		for d in $(find ./ -maxdepth 1 -mindepth 1 -type d)
 #		do
 #			echo "compressing $d -> $d.tar.gz" >> {params.wd}/{log}
-#			{params.wd}/scripts/archive.sh $d tar.gz
+#			{params.wd}/bin/archive.sh $d tar.gz
 #		done 
 		
 #		mkdir temp_files
 #		mv $(find ./ -mindepth 1 -maxdepth 1 -type f | grep -v "braker." | grep -v "tar.gz$") temp_files/
-#		{params.wd}/scripts/archive.sh temp_files tar.gz
+#		{params.wd}/bin/archive.sh temp_files tar.gz
 
 		touch {params.wd}/{output.ok}
 			#--skipGeneMark-ES \
@@ -140,12 +140,12 @@ rule targz_braker_protein:
 		for d in $(find ./ -maxdepth 1 -mindepth 1 -type d)
 		do
 			echo "compressing $d -> $d.tar.gz" >> {params.wd}/{log}
-			{params.wd}/scripts/archive.sh $d tar.gz
+			{params.wd}/bin/archive.sh $d tar.gz
 		done 
 		
 		mkdir temp_files
 		mv $(find ./ -mindepth 1 -maxdepth 1 -type f | grep -v "braker." | grep -v "tar.gz$") temp_files/
-		{params.wd}/scripts/archive.sh temp_files tar.gz
+		{params.wd}/bin/archive.sh temp_files tar.gz
 
 		touch {params.wd}/{output}
 		"""
@@ -164,12 +164,12 @@ rule targz_braker_prot_rna:
 		for d in $(find ./ -maxdepth 1 -mindepth 1 -type d)
 		do
 			echo "compressing $d -> $d.tar.gz" >> {params.wd}/{log}
-			{params.wd}/scripts/archive.sh $d tar.gz
+			{params.wd}/bin/archive.sh $d tar.gz
 		done 
 		
 		mkdir temp_files
 		mv $(find ./ -mindepth 1 -maxdepth 1 -type f | grep -v "braker." | grep -v "tar.gz$") temp_files/
-		{params.wd}/scripts/archive.sh temp_files tar.gz
+		{params.wd}/bin/archive.sh temp_files tar.gz
 
 		touch {params.wd}/{output}
 		"""
