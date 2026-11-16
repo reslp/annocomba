@@ -15,6 +15,13 @@
 # (http://www.opensource.org/licenses/artistic-license.php)                                        #
 #                                                                                                  #
 # *EX = ES/ET/EP/ETP, currently distributed as GeneMark-ETP                                        #
+
+### ######
+### this version contains minor modifications compared applied to the version 3.0.8 shipping in
+### docker://teambraker/braker3:v3.1.1
+### singularity exec -B /cl_tmp/hahn/ docker://teambraker/braker3:v3.1.1 diff /opt/BRAKER/scripts/braker.pl bin/braker.pl
+### ######
+
 ####################################################################################################
 
 use Getopt::Long;
@@ -1235,14 +1242,14 @@ if (! -d $genemarkDir) {
     print LOG "mkdir $genemarkDir\n" if ($v > 2);
 }
 
-if ( defined($genemarkesDir) ) {
-    make_path($genemarkesDir) or die("ERROR in file " . __FILE__ ." at line "
-        . __LINE__ ."\nFailed to create direcotry $genemarkesDir!\n");
-    print LOG "\# "
-        . (localtime)
-        . ": create working directory $genemarkesDir.\n" if ($v > 2);
-    print LOG "mkdir $genemarkesDir\n" if ($v > 2);
-}
+#if ( defined($genemarkesDir) ) {
+#    make_path($genemarkesDir) or die("ERROR in file " . __FILE__ ." at line "
+#        . __LINE__ ."\nFailed to create direcotry $genemarkesDir!\n");
+#    print LOG "\# "
+#        . (localtime)
+#        . ": create working directory $genemarkesDir.\n" if ($v > 2);
+#    print LOG "mkdir $genemarkesDir\n" if ($v > 2);
+#}
 
 # softlink genemark.gtf file
 if ( defined($geneMarkGtf) && !$ETPmode ) {
@@ -5205,7 +5212,7 @@ sub GeneMark_ES {
     print LOG "\# " . (localtime) . ": Executing GeneMark-ES\n" if ($v > 2);
     my $localGenemarkDir = shift;
     if ( !$skipGeneMarkET ) {
-        if (!uptodate( [ $genome], ["$localGenemarkDir/genemark.gtf"] ) || $overwrite
+        if (uptodate( [ $genome], ["$localGenemarkDir/genemark.gtf"] ) || $overwrite
             ){
             $cmdString = "cd $localGenemarkDir";
             print LOG "\# "

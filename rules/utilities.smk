@@ -31,6 +31,30 @@ def get_sample_selection():
 	else:
 		return config["select"].split(",")
 
+def targets_for_funannotate_post(sample_list):
+	sample_data = pd.read_table(config["samples"], header=0, keep_default_na=True).set_index("sample", drop=False)
+	file_list = []
+	if "maker" in config["predict"]["predict_post"]:
+		for s in sample_list:
+			file_list.append("checkpoints/"+s+"/FUNANNOTATE_tarpredict-post_maker.done")
+	if "braker" in config["predict"]["predict_post"]:
+		for s in sample_list:
+			file_list.append("checkpoints/"+s+"/FUNANNOTATE_tarpredict-post_braker.done")
+	if "braker+maker" in config["predict"]["predict_post"]:
+		for s in sample_list:
+			file_list.append("checkpoints/"+s+"/FUNANNOTATE_tarpredict-post_all.done")
+	print(file_list)
+	return file_list
+
+def decide_funannotate_post_braker_input(wildcards):
+	if "protein+RNA" in config["braker"]["workflow_version"] and len(sample_data.loc[wildcards.sample, ["rnaseq_sets_ids"]].values[0]) and len(sample_data.loc[wildcards.sample, ["rnaseq_sets_dir"]].values[0]):
+		print("Running funannotate post braker 'protein+RNA'")
+		return ["results/"+wildcards.sample+"/BRAKER-PROT-RNA/braker.gff3", "results/"+wildcards.sample+"/BRAKER-PROT-RNA/species.tar.gz"]
+	elif "protein" in config["braker"]["workflow_version"]:
+		print("Running funannotate post braker 'protein'")
+		return ["results/"+wildcards.sample+"/BRAKER-PROTEIN/braker.gff3", "results/"+wildcards.sample+"/BRAKER-PROTEIN/species.tar.gz"]
+			
+
 def targets_for_braker(samples):
 	sample_data = pd.read_table(samples, header=0, keep_default_na=True).set_index("sample", drop=False)
 	sample_list = []
@@ -45,14 +69,16 @@ def targets_for_braker(samples):
 
 	if "protein" in config["braker"]["workflow_version"]:
 		for s in sample_list:
-			file_list.append("results/"+s+"/BRAKER-PROTEIN/braker.ok")
+#			file_list.append("results/"+s+"/BRAKER-PROTEIN/braker.ok")
+			file_list.append("checkpoints/"+s+"/BRAKER-PROTEIN_targz.done")
 			
 	if "protein+RNA" in config["braker"]["workflow_version"]:
 		data = sample_data.dropna(subset=['rnaseq_sets_dir', 'rnaseq_sets_ids'])
 #		print(data)
 		for s in data.index.tolist():
 			if s in sample_list:
-				file_list.append("results/"+s+"/BRAKER-PROT-RNA/braker.ok")
+#				file_list.append("results/"+s+"/BRAKER-PROT-RNA/braker.ok")
+				file_list.append("checkpoints/"+s+"/BRAKER-PROT-RNA_targz.done")
 
 	return file_list
 
