@@ -482,30 +482,35 @@ elif args.command == "util":
 		for line in execute_command(cmd, not qs_args.quiet, True):
 			print(line, end="\r")
 	if which_util == "patch-snakemake":
-		print(now(), "Patching snakemake deployment/singularity.py for Apptainer compatibility...")
-		import snakemake.deployment.singularity as _sng
-		sng_file = _sng.__file__
-		with open(sng_file, "r") as fh:
-			_old = fh.read()
-		if "apptainer" in _old:
-			print(now(), "Snakemake already appears to be patched. Nothing to do.")
-		else:
-			_new = _old.replace(
-				"shutil.which('singularity')",
-				"shutil.which('singularity') or shutil.which('apptainer')"
-			)
-			if _new == _old:
-				_new = _old.replace(
-					'"singularity"',
-					'"singularity" or shutil.which("apptainer")'
-				)
-			if _new == _old:
-				print(now(), "Could not auto-patch. Please patch manually.")
-			else:
-				with open(sng_file, "w") as fh:
-					fh.write(_new)
-				print(now(), "Patch applied successfully to", sng_file)
-				print(now(), "If you relocate the pixi environment, run this command again.")
+		import snakemake, os, shutil, inspect
+		from pathlib import Path
+		if snakemake.__version__ != "6.0.2":
+			print("This patch only works with snakemake 6.0.2. You have", snakemake.__version__)
+			sys.exit(1)
+		# Locate target file
+		sm_path = Path(inspect.getfile(snakemake)).parent / "deployment" / "singularity.py"
+		if not sm_path.is_file():
+			print("ERROR: file not found:", sm_path)
+			sys.exit(1)
+		# Check if already patched
+		with open(str(sm_path)) as f:
+			content = f.read()
+		if "# patch for compatibility of snakemake 6.0.2 with apptainer" in content:
+			print("Snakemake already patched. Nothing to do.")
+			sys.exit(0)
+		# Locate patch file next to this script
+		patch_file = Path(__file__).resolve().parent / ".singularity.py_patch"
+		if not patch_file.is_file():
+			print("ERROR: patch file not found:", patch_file)
+			sys.exit(1)
+		print("Patching snakemake", snakemake.__version__, "for Apptainer/SingularityCE compatibility...")
+		# Backup original
+		backup_path = str(sm_path) + "_BACKUP"
+		shutil.copy(str(sm_path), backup_path)
+		print("Created backup:", backup_path)
+		# Copy patched version
+		shutil.copy(str(patch_file), str(sm_path))
+		print("File patched. Snakemake 6.0.2 should now work with Apptainer 1.0+ and Singularity 2.4.1+")
 	if which_util == "check-setup":
 		qs_parser = UtilParser(add_help=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
